@@ -6,20 +6,87 @@ import { StandaloneStructServiceProvider } from "node_modules/ketcher-standalone
 
 import "ketcher-react/dist/index.css";
 
+interface ButtonConfig {
+  hidden?: boolean;
+}
+type ButtonName =
+  | "layout"
+  | "clean"
+  | "arom"
+  | "dearom"
+  | "cip"
+  | "check"
+  | "analyse"
+  | "recognize"
+  | "miew"
+  | "settings"
+  | "help"
+  | "about"
+  | "fullscreen"
+  | "sgroup"
+  | "reaction-plus"
+  | "arrows"
+  | "reaction-arrow-open-angle"
+  | "reaction-arrow-filled-triangle"
+  | "reaction-arrow-filled-bow"
+  | "reaction-arrow-dashed-open-angle"
+  | "reaction-arrow-failed"
+  | "reaction-arrow-both-ends-filled-triangle"
+  | "reaction-arrow-equilibrium-filled-half-bow"
+  | "reaction-arrow-equilibrium-filled-triangle"
+  | "reaction-arrow-equilibrium-open-angle"
+  | "reaction-arrow-unbalanced-equilibrium-filled-half-bow"
+  | "reaction-arrow-unbalanced-equilibrium-open-half-angle"
+  | "reaction-arrow-unbalanced-equilibrium-large-filled-half-bow"
+  | "reaction-arrow-unbalanced-equilibrium-filled-half-triangle"
+  | "reaction-arrow-elliptical-arc-arrow-filled-bow"
+  | "reaction-arrow-elliptical-arc-arrow-filled-triangle"
+  | "reaction-arrow-elliptical-arc-arrow-open-angle"
+  | "reaction-arrow-elliptical-arc-arrow-open-half-angle"
+  | "reaction-mapping-tools"
+  | "reaction-automap"
+  | "reaction-map"
+  | "reaction-unmap"
+  | "rgroup"
+  | "rgroup-label"
+  | "rgroup-fragment"
+  | "rgroup-attpoints"
+  | "shape"
+  | "shape-ellipse"
+  | "shape-rectangle"
+  | "shape-line"
+  | "text"
+  | "enhanced-stereo";
+
+type ButtonsConfig = { [buttonName in ButtonName]?: ButtonConfig };
+
+const getHiddenButtonsConfig = (): ButtonsConfig => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hiddenButtons = searchParams.get("hiddenControls");
+
+  if (!hiddenButtons) return {};
+
+  return hiddenButtons.split(",").reduce<ButtonsConfig>((acc, button) => {
+    if (button) acc[button as ButtonName] = { hidden: true };
+
+    return acc;
+  }, {});
+};
+
 const SketcherEditor = () => {
   //const structServiceProvider = new StandaloneStructServiceProvider();
   const structServiceProvider = new RemoteStructServiceProvider(
     process.env.REACT_APP_API_PATH!,
-    {
-      "custom header": "value", // optionally you can add custom headers object
-    },
   );
+
+  const hiddenButtonsConfig = getHiddenButtonsConfig();
 
   return (
     <Editor
       errorHandler={(message: string) => console.log(message)}
       staticResourcesUrl={process.env.PUBLIC_URL!}
       structServiceProvider={structServiceProvider}
+      buttons={hiddenButtonsConfig}
       onInit={(ketcher: Ketcher) => {
         window.ketcher = ketcher;
         window.parent.postMessage(
