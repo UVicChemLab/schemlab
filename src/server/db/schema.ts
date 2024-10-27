@@ -7,6 +7,7 @@ import {
   integer,
   pgTableCreator,
   serial,
+  smallserial,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -24,11 +25,19 @@ export const questions = createTable(
   {
     id: serial("queston_id").primaryKey(),
     number: integer("question_number").notNull(),
-    question: varchar("question", { length: 1024 }),
-    levelid: integer("level_id").references(() => levels.id),
-    typeid: integer("type_id").references(() => types.id),
-    answerid: integer("answer_id").references(() => answers.id),
-    setid: integer("set_id").references(() => sets.id),
+    question: varchar("question", { length: 1024 }).notNull(),
+    levelid: integer("level_id")
+      .references(() => levels.id)
+      .notNull(),
+    typeid: integer("type_id")
+      .references(() => types.id)
+      .notNull(),
+    answerid: integer("answer_id")
+      .references(() => answers.id)
+      .notNull(),
+    setid: integer("set_id")
+      .references(() => sets.id)
+      .notNull(),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -46,8 +55,7 @@ export const sets = createTable(
   "set",
   {
     id: serial("set_id").primaryKey(),
-    number: integer("set_number").notNull(),
-    name: varchar("set_name", { length: 1024 }),
+    name: varchar("set_name", { length: 50 }).notNull().unique(),
     desc: varchar("set_desc", { length: 1024 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -65,7 +73,7 @@ export const types = createTable(
   "type",
   {
     id: serial("type_id").primaryKey(),
-    name: varchar("type_name", { length: 1024 }),
+    name: varchar("type_name", { length: 50 }).notNull().unique(),
     desc: varchar("type_desc", { length: 1024 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -83,8 +91,7 @@ export const levels = createTable(
   "level",
   {
     id: serial("level_id").primaryKey(),
-    number: integer("level_number").notNull(),
-    name: varchar("level_name", { length: 1024 }),
+    name: varchar("level_name", { length: 50 }).notNull().unique(),
     desc: varchar("level_desc", { length: 1024 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
