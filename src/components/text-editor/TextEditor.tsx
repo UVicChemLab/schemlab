@@ -4,6 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
+import Image from "@tiptap/extension-image";
 import Toolbar from "./Toolbar";
 
 const TextEditor = () => {
@@ -14,6 +15,7 @@ const TextEditor = () => {
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
+      Image,
     ],
     editorProps: {
       attributes: {

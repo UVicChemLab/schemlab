@@ -1,7 +1,7 @@
 "use client";
 
 import { Editor } from "ketcher-react";
-import { type Ketcher, RemoteStructServiceProvider } from "ketcher-core";
+import { Ketcher, RemoteStructServiceProvider } from "ketcher-core";
 
 import "ketcher-react/dist/index.css";
 
