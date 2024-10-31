@@ -24,6 +24,7 @@ export type Groups = {
   name: string;
   icon: React.ReactNode;
   action: (editor: Editor) => boolean;
+  disabled?: (editor: Editor) => boolean;
 }[];
 
 const toggleStyle = "h-4 w-4";
@@ -83,5 +84,18 @@ export const textAlignments = [
     action: (editor: Editor) =>
       editor.chain().focus().setTextAlign("justify").run(),
     icon: <AlignJustify className={toggleStyle} />,
+  },
+  {
+    key: "text-alignment-bulletList",
+    name: "bulletList",
+    action: (editor: Editor) => editor.chain().focus().toggleBulletList().run(),
+    icon: <List className={toggleStyle} />,
+  },
+  {
+    key: "text-alignment-orderedList",
+    name: "orderedList",
+    action: (editor: Editor) =>
+      editor.chain().focus().toggleOrderedList().run(),
+    icon: <ListOrdered className={toggleStyle} />,
   },
 ];

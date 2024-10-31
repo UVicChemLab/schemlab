@@ -17,8 +17,12 @@ import {
 import { Button } from "./ui/button";
 import { ImagePlus } from "lucide-react";
 import { Input } from "./ui/input";
+import { type Editor } from "@tiptap/react";
 
-const UploadDropzone = () => {
+const UploadDropzone = ({ editor }: { editor: Editor }) => {
+  if (!editor) {
+    return null;
+  }
   const [files, setFiles] = useState<File[]>([]);
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -28,6 +32,9 @@ const UploadDropzone = () => {
 
   const { startUpload, routeConfig } = useUploadThing("imageUploader", {
     onClientUploadComplete: (images) => {
+      images.map((image) => {
+        editor.chain().focus().setImage({ src: image.url }).run();
+      });
       alert("uploaded successfully!");
     },
     onUploadError: () => {

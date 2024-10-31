@@ -19,7 +19,7 @@ const Toolbar = ({ editor }: Props) => {
       <Separator orientation="vertical" className="mx-2 h-7" />
       <ToggleButtonGroup editor={editor} group={textAlignments} />
       <Separator orientation="vertical" className="mx-2 h-7" />
-      <UploadDropzone />
+      <UploadDropzone editor={editor} />
     </div>
   );
 };
