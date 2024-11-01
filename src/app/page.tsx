@@ -1,16 +1,13 @@
-import Sketcher from "~/components/sketcher/editor";
-import AddQuestion from "~/components/AddQuestion";
-import { ModeToggle } from "~/components/Mode-Toggle";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
 export default function HomePage() {
   return (
     <main className="">
-      {/*<div className="m-10 flex h-[60svh] w-1/2 items-center justify-center rounded-md border-2">
-        <Sketcher />
-      </div>*/}
-      <AddQuestion />
-      <div className="fixed bottom-4 right-4">
-        <ModeToggle />
-      </div>
+      <Link
+        href={`/admin?api_path=${process.env.PUBLIC_URL}${process.env.REACT_APP_API_PATH}`}
+      >
+        <Button>Add Question</Button>
+      </Link>
     </main>
   );
 }

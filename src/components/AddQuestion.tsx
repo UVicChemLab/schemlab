@@ -34,6 +34,11 @@ import {
   createSet,
   createType,
 } from "~/server/db/calls";
+import dynamic from "next/dynamic";
+
+const Sketcher = dynamic(() => import("./sketcher/editor"), {
+  ssr: false,
+});
 
 export const questionFormSchema = z.object({
   questionNumber: z
@@ -48,39 +53,44 @@ export const questionFormSchema = z.object({
   level: z.string(),
   type: z.string(),
   set: z.string(),
-  question: z.string().min(2, {
+  question: z.string().optional() /*.min(2, {
     message: "Question must be at least 2 characters",
-  }),
+  }),*/,
 });
 
 const AddQuestion = () => {
   const [levels, setLevels] = useState<{ name: string }[]>([]);
   const [types, setTypes] = useState<{ name: string }[]>([]);
   const [sets, setSets] = useState<{ name: string }[]>([]);
-  const fetchData = async () => {
-    const levelCall: Promise<{ name: string }[]> = getLevels();
-    const typeCall: Promise<{ name: string }[]> = getTypes();
-    const setCall: Promise<{ name: string }[]> = getSets();
-
-    const [levelData, typeData, setData] = await Promise.all([
-      levelCall,
-      typeCall,
-      setCall,
-    ]);
-
-    setLevels(() => levelData);
-    setTypes(() => typeData);
-    setSets(() => setData);
-  };
 
   useEffect(() => {
+    const fetchData = async () => {
+      const levelCall: Promise<{ name: string }[]> = getLevels();
+      const typeCall: Promise<{ name: string }[]> = getTypes();
+      const setCall: Promise<{ name: string }[]> = getSets();
+
+      const [levelData, typeData, setData] = await Promise.all([
+        levelCall,
+        typeCall,
+        setCall,
+      ]);
+
+      setLevels(() => levelData);
+      setTypes(() => typeData);
+      setSets(() => setData);
+    };
+
     fetchData();
   }, []);
 
   const questionForm = useForm<z.infer<typeof questionFormSchema>>({
     resolver: zodResolver(questionFormSchema),
     defaultValues: {
-      question: "",
+      questionNumber: 1,
+      level: "",
+      type: "",
+      set: "",
+      question: "Type Here",
     },
   });
 
@@ -88,6 +98,7 @@ const AddQuestion = () => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);
+    console.log("From sketcher", window.ketcher.getSmiles());
   }
 
   return (
@@ -154,6 +165,9 @@ const AddQuestion = () => {
                 </FormItem>
               )}
             />
+            <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
+              <Sketcher />
+            </div>
             <CardFooter className="flex justify-end gap-4">
               <Button variant="outline">Cancel</Button>
               <Button type="submit">Submit</Button>
