@@ -5,6 +5,8 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { ModeToggle } from "~/components/Mode-Toggle";
+import { ClerkProvider } from "@clerk/nextjs";
+import NavBar from "~/components/NavBar";
 
 export const metadata: Metadata = {
   title: "Spectroscopy Chemistry Lab",
@@ -16,25 +18,28 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${GeistSans.variable}`}
-      suppressHydrationWarning
-    >
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-          <div className="fixed bottom-4 right-4">
-            <ModeToggle />
-          </div>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${GeistSans.variable}`}
+        suppressHydrationWarning
+      >
+        <body>
+          <NavBar />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+            <div className="fixed bottom-4 right-4">
+              <ModeToggle />
+            </div>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
