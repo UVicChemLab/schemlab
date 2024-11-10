@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "~/server/db";
-import { between, max, min, sql, avg, count } from "drizzle-orm";
 import { questions, levels, types, sets, answers } from "~/server/db/schema";
+import { between, max, min, sql, avg, count, eq } from "drizzle-orm";
 
 export const getSets = async () => {
   return await db.select({ name: sets.name }).from(sets);

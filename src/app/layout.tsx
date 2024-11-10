@@ -5,8 +5,10 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { ModeToggle } from "~/components/Mode-Toggle";
-import { ClerkProvider } from "@clerk/nextjs";
 import NavBar from "~/components/NavBar";
+import { SessionProvider } from "next-auth/react";
+import { RoleProvider } from "~/components/role-provider";
+import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
   title: "Spectroscopy Chemistry Lab",
@@ -14,32 +16,36 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/compound.png" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+
   return (
-    <ClerkProvider>
-      <html
-        lang="en"
-        className={`${GeistSans.variable}`}
-        suppressHydrationWarning
-      >
-        <body>
-          <NavBar />
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster />
-            <div className="fixed bottom-4 right-4">
-              <ModeToggle />
-            </div>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <SessionProvider session={session}>
+      <RoleProvider>
+        <html
+          lang="en"
+          className={`${GeistSans.variable}`}
+          suppressHydrationWarning
+        >
+          <body>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <NavBar />
+              {children}
+              <Toaster />
+              <div className="fixed bottom-4 right-4">
+                <ModeToggle />
+              </div>
+            </ThemeProvider>
+          </body>
+        </html>
+      </RoleProvider>
+    </SessionProvider>
   );
 }

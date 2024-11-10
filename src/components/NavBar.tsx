@@ -13,44 +13,38 @@ import {
 } from "./ui/navigation-menu";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 const NavBar = () => {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href="/docs" legacyBehavior passHref>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Documentation
-            </NavigationMenuLink>
-          </Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <SignedOut>
-            <Button variant="outline">
-              <Link href="/sign-in" legacyBehavior passHref>
+    <header className="sticky top-0 w-full border-b">
+      <div className="flex h-14 items-center p-8">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link href="/docs" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  Documentation
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/signin" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   Sign In
                 </NavigationMenuLink>
               </Link>
-            </Button>
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </NavigationMenuItem>
-        <SignedIn>
-          <NavigationMenuItem>
-            <Link href="/admin" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Admin
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-        </SignedIn>
-      </NavigationMenuList>
-    </NavigationMenu>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/admin" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  Admin
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+    </header>
   );
 };
 
