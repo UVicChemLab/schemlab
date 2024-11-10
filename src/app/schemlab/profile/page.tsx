@@ -7,7 +7,6 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useCurrentUser } from "~/hooks/use-current-user";
 import { ProfileSchema } from "~/lib/formSchemas";
 
 import { profile } from "~/actions/profile";
@@ -34,28 +33,29 @@ import { Input } from "~/components/ui/input";
 import { FormError } from "~/components/ui/form-error";
 import { FormSucess } from "~/components/ui/form-success";
 import { Memo } from "@legendapp/state/react";
-import { useRole } from "~/components/role-provider";
+import { useProfile } from "~/components/role-provider";
 import { Badge } from "~/components/ui/badge";
+import { observable } from "@legendapp/state";
+import { useCurrentUser } from "~/hooks/use-current-user";
 
 const ProfilePage = () => {
-  const [error, setError] = useState<string | undefined>();
-  const [success, setSuccess] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
+  const error$ = observable("");
+  const success$ = observable("");
   const { update } = useSession();
 
   const user = useCurrentUser();
-
-  const { role } = useRole();
+  const { role } = useProfile();
 
   const form = useForm<z.infer<typeof ProfileSchema>>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
-      name: user?.name || undefined,
-      email: user?.email || undefined,
-      password: undefined,
-      newPassword: undefined,
-      isTwoFactorEnabled: user?.isTwoFactorEnabled || undefined,
-      role: undefined,
+      name: user?.name || "",
+      email: user?.email || "",
+      password: "",
+      newPassword: "",
+      isTwoFactorEnabled: user?.isTwoFactorEnabled,
+      role: role.get(),
     },
   });
 
@@ -63,16 +63,16 @@ const ProfilePage = () => {
     startTransition(() => {
       profile(values)
         .then((data) => {
-          if (data.error) {
-            setError(data.error);
+          if (data?.error) {
+            error$.set(data.error);
           }
 
-          if (data.success) {
+          if (data?.success) {
             update();
-            setSuccess(data.success);
+            success$.set(data.success);
           }
         })
-        .catch(() => setError("Something went wrong!"));
+        .catch(() => error$.set("Something went wrong!"));
     });
   };
 
@@ -193,8 +193,8 @@ const ProfilePage = () => {
                 />
               )}
             </div>
-            <FormError message={error} />
-            <FormSucess message={success} />
+            <FormError message={error$.get()} />
+            <FormSucess message={success$.get()} />
             <Button type="submit" disabled={isPending}>
               Save
             </Button>

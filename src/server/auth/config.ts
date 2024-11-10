@@ -1,9 +1,11 @@
+import "next-auth";
+import "next-auth/jwt";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { DefaultSession, type NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 import { db } from "~/server/db";
 import { accounts, users, verificationTokens } from "~/server/db/schema";
-import type { Provider } from "next-auth/providers";
+import { type Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import { LoginSchema } from "~/lib/formSchemas";
 import {
@@ -16,38 +18,10 @@ import {
   getUserOrganizationRoles,
 } from "../db/calls/auth";
 import bcrypt from "bcryptjs";
-import { JWT } from "next-auth/jwt";
+import { DefaultJWT, JWT } from "next-auth/jwt";
+//import { JWT } from "@auth/core/jwt";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-
-/**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
- */
-export type ExtendedUser = {
-  id: string;
-  isOAuth: boolean;
-  isTwoFactorEnabled: boolean;
-  orgRoles?: { organizationName: string | null; roleName: string | null }[];
-} & DefaultSession["user"];
-
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: ExtendedUser;
-  }
-}
-
-declare module "next-auth/jwt" {
-  /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
-  interface JWT {
-    id: string;
-    isOAuth: boolean;
-    isTwoFactorEnabled: boolean;
-    orgRoles?: { organizationName: string | null; roleName: string | null }[];
-  }
-}
 
 const providers: Provider[] = [
   Resend,
@@ -72,17 +46,6 @@ const providers: Provider[] = [
     },
   }),
 ];
-
-export const providerMap = providers
-  .map((provider) => {
-    if (typeof provider === "function") {
-      const providerData = provider();
-      return { id: providerData.id, name: providerData.name };
-    } else {
-      return { id: provider.id, name: provider.name };
-    }
-  })
-  .filter((provider) => provider.id !== "credentials");
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -125,43 +88,31 @@ export const authConfig = {
 
       return true;
     },
-    async jwt({ token, user }) {
-      if (user.id) {
+    async session({ session, token }) {
+      if (token?.accessToken) session.accessToken = token.accessToken;
+      if (token?.id) session.user.id = token.id;
+      if (token?.isTwoFactorEnabled)
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
+      if (token?.isOAuth) session.user.isOAuth = token.isOAuth;
+      if (token?.orgRoles) session.user.orgRoles = token.orgRoles;
+      return session;
+    },
+    async jwt({ token, trigger, session, account, user }) {
+      if (trigger === "update") token.name = session.user.name;
+      if (account?.provider === "keycloak") {
+        return { ...token, accessToken: account.access_token };
+      }
+      if (user?.id) {
         token.id = user.id;
         const existingUser = await getUserById(user.id);
-        if (!existingUser) return token;
-        const existingAccount = await getAccountByUserId(existingUser.id);
+        const existingAccount = await getAccountByUserId(user.id);
+        if (existingUser?.isTwoFactorEnabled)
+          token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
         token.isOAuth = !!existingAccount;
-        token.name = existingUser.name;
-        token.email = existingUser.email;
-        token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
-        const orgRoles = await getUserOrganizationRoles(existingUser.id);
-        if (!orgRoles || orgRoles.length === 0) return token;
-        token.orgRoles = orgRoles;
+        const orgRoles = await getUserOrganizationRoles(user.id);
+        if (orgRoles) token.orgRoles = orgRoles;
       }
-
       return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
-        session.user.name = token.name;
-        session.user.isOAuth = token.isOAuth;
-
-        if (token.id) {
-          session.user.id = token.id;
-        }
-
-        if (token.orgRoles && token.orgRoles.length > 0) {
-          session.user.orgRoles = token.orgRoles;
-        }
-
-        if (token.email) {
-          session.user.email = token.email;
-        }
-      }
-
-      return session;
     },
   },
   pages: {
@@ -170,3 +121,27 @@ export const authConfig = {
   },
   session: { strategy: "jwt" },
 } satisfies NextAuthConfig;
+
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    accessToken?: string;
+    user: ExtendedUser;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    accessToken?: string;
+    id?: string;
+    isTwoFactorEnabled?: boolean;
+    isOAuth?: boolean;
+    orgRoles?: { organizationName: string | null; roleName: string | null }[];
+  }
+}
+
+export type ExtendedUser = {
+  id?: string;
+  isOAuth?: boolean;
+  isTwoFactorEnabled?: boolean;
+  orgRoles?: { organizationName: string | null; roleName: string | null }[];
+} & DefaultSession["user"];

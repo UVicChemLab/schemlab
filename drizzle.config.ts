@@ -8,5 +8,5 @@ export default {
   dbCredentials: {
     url: env.DATABASE_URL,
   },
-  tablesFilter: ["schemlab_*"],
+  //tablesFilter: ["schemlab_*"],
 } satisfies Config;

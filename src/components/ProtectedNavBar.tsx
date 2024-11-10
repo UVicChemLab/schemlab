@@ -11,7 +11,7 @@ import {
   NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
-
+import { UserButton } from "./auth/user-button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCurrentUser } from "~/hooks/use-current-user";
@@ -38,16 +38,21 @@ const NavBar = () => {
             </NavigationMenuItem>
             <Memo>
               {() =>
-                !user && (
-                  <NavigationMenuItem>
-                    <Link href="/auth/login" legacyBehavior passHref>
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        Sign In
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
+                user && (
+                  <>
+                    <NavigationMenuItem>
+                      <Link href="/admin" legacyBehavior passHref>
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
+                        >
+                          Admin
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <UserButton />
+                    </NavigationMenuItem>
+                  </>
                 )
               }
             </Memo>

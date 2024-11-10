@@ -5,7 +5,6 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { ModeToggle } from "~/components/Mode-Toggle";
-import NavBar from "~/components/NavBar";
 import { SessionProvider } from "next-auth/react";
 import { RoleProvider } from "~/components/role-provider";
 import { auth } from "~/server/auth";
@@ -36,7 +35,6 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <NavBar />
               {children}
               <Toaster />
               <div className="fixed bottom-4 right-4">

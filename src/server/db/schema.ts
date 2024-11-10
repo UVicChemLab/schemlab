@@ -1,7 +1,6 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { password } from "bun";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -26,11 +25,23 @@ export enum Role {
   STUDENT = "student",
 }
 
-const roleEnum = pgEnum("role_type", [
+export enum Visibility {
+  PUBLIC = "public",
+  ORGANIZATION = "organization",
+  PRIVATE = "private",
+}
+
+export const roleEnum = pgEnum("name", [
   Role.ADMIN,
   Role.ORGADMIN,
   Role.INSTRUCTOR,
   Role.STUDENT,
+]);
+
+export const visibilityEnum = pgEnum("visibility", [
+  Visibility.PUBLIC,
+  Visibility.ORGANIZATION,
+  Visibility.PRIVATE,
 ]);
 
 export const users = pgTable("user", {
@@ -157,7 +168,7 @@ export const organizations = pgTable("organization", {
 
 export const roles = pgTable("role", {
   id: serial("role_id").primaryKey(),
-  name: roleEnum("name").notNull(),
+  name: roleEnum().notNull(),
   desc: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -196,130 +207,109 @@ export const userOrganizationRoles = pgTable(
   ],
 );
 
-export const questions = pgTable(
-  "question",
-  {
-    id: serial("queston_id").primaryKey(),
-    number: integer("question_number").notNull(),
-    question: varchar("question", { length: 1024 }).notNull(),
-    levelid: integer("level_id")
-      .references(() => levels.id, { onDelete: "cascade" })
-      .notNull(),
-    typeid: integer("type_id")
-      .references(() => types.id, { onDelete: "cascade" })
-      .notNull(),
-    answerid: integer("answer_id")
-      .references(() => answers.id, { onDelete: "cascade" })
-      .notNull(),
-    setid: integer("set_id")
-      .references(() => sets.id, { onDelete: "cascade" })
-      .notNull(),
-    time: jsonb("question_time").notNull().default({
-      hours: 0,
-      minutes: 1,
-      seconds: 0,
-    }),
-    createdBy: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [index("queston_idx").on(example.id)],
-);
+export const questions = pgTable("question", {
+  id: serial("queston_id").primaryKey(),
+  number: integer("question_number").notNull(),
+  question: varchar("question", { length: 1024 }).notNull(),
+  levelid: integer("level_id")
+    .references(() => levels.id, { onDelete: "cascade" })
+    .notNull(),
+  typeid: integer("type_id")
+    .references(() => types.id, { onDelete: "cascade" })
+    .notNull(),
+  answerid: integer("answer_id")
+    .references(() => answers.id, { onDelete: "cascade" })
+    .notNull(),
+  setid: integer("set_id")
+    .references(() => sets.id, { onDelete: "cascade" })
+    .notNull(),
+  time: jsonb("question_time").notNull().default({
+    hours: 0,
+    minutes: 1,
+    seconds: 0,
+  }),
+  createdBy: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
-export const sets = pgTable(
-  "set",
-  {
-    id: serial("set_id").primaryKey(),
-    name: varchar("set_name", { length: 50 }).notNull().unique(),
-    desc: varchar("set_desc", { length: 1024 }),
-    private: boolean("private").notNull().default(false),
-    time: jsonb("set_time").notNull().default({
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-    }),
-    visibility: varchar("visibility", { length: 50 }).notNull(),
-    organizationId: integer("organization_id")
-      .references(() => organizations.id, { onDelete: "cascade" })
-      .notNull(),
-    createdBy: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [index("set_idx").on(example.id)],
-);
+export const sets = pgTable("set", {
+  id: serial("set_id").primaryKey(),
+  name: varchar("set_name", { length: 50 }).notNull().unique(),
+  desc: varchar("set_desc", { length: 1024 }),
+  time: jsonb("set_time").notNull().default({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  }),
+  visibility: visibilityEnum().notNull(),
+  organizationId: integer("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  createdBy: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
-export const types = pgTable(
-  "type",
-  {
-    id: serial("type_id").primaryKey(),
-    name: varchar("type_name", { length: 50 }).notNull().unique(),
-    desc: varchar("type_desc", { length: 1024 }),
-    visibility: varchar("visibility", { length: 50 }).notNull(),
-    organizationId: integer("organization_id")
-      .references(() => organizations.id, { onDelete: "cascade" })
-      .notNull(),
-    createdBy: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [index("type_idx").on(example.id)],
-);
+export const types = pgTable("type", {
+  id: serial("type_id").primaryKey(),
+  name: varchar("type_name", { length: 50 }).notNull().unique(),
+  desc: varchar("type_desc", { length: 1024 }),
+  visibility: visibilityEnum().notNull(),
+  organizationId: integer("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  createdBy: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
-export const levels = pgTable(
-  "level",
-  {
-    id: serial("level_id").primaryKey(),
-    name: varchar("level_name", { length: 50 }).notNull().unique(),
-    desc: varchar("level_desc", { length: 1024 }),
-    visibility: varchar("visibility", { length: 50 }).notNull(),
-    organizationId: integer("organization_id")
-      .references(() => organizations.id, { onDelete: "cascade" })
-      .notNull(),
-    createdBy: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [index("level_idx").on(example.id)],
-);
+export const levels = pgTable("level", {
+  id: serial("level_id").primaryKey(),
+  name: varchar("level_name", { length: 50 }).notNull().unique(),
+  desc: varchar("level_desc", { length: 1024 }),
+  visibility: visibilityEnum().notNull(),
+  organizationId: integer("organization_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  createdBy: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
-export const answers = pgTable(
-  "answer",
-  {
-    id: serial("answer_id").primaryKey(),
-    createdBy: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (example) => [index("answer_idx").on(example.id)],
-);
+export const answers = pgTable("answer", {
+  id: serial("answer_id").primaryKey(),
+  createdBy: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});

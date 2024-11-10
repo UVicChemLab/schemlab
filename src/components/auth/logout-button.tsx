@@ -1,6 +1,8 @@
 "use client";
 
 import { logout } from "~/actions/logout";
+import { Button } from "~/components/ui/button";
+import { useProfile } from "../role-provider";
 
 interface LogoutButtonProps {
   children?: React.ReactNode;
@@ -12,8 +14,12 @@ export const LogoutButton = ({ children }: LogoutButtonProps) => {
   };
 
   return (
-    <span onClick={onClick} className="cursor-pointer">
+    <Button
+      onClick={onClick}
+      className="w-full cursor-pointer"
+      variant={"ghost"}
+    >
       {children}
-    </span>
+    </Button>
   );
 };

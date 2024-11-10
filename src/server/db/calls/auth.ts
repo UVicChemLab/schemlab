@@ -12,6 +12,7 @@ import {
   organizations,
   userOrganizationRoles,
 } from "~/server/db/schema";
+import { Role } from "~/server/db/schema";
 
 export const getUserByEmail = async (email: string) => {
   return await db.query.users.findFirst({
@@ -29,7 +30,23 @@ export const createUser = async (
   email: string,
   password: string,
 ) => {
-  await db.insert(users).values({ name, email, password });
+  const user = await db
+    .insert(users)
+    .values({ name, email, password })
+    .returning();
+  if (!user[0]) return;
+  const role = await db.query.roles.findFirst({
+    where: (roles, { eq }) => eq(roles.name, Role.STUDENT),
+  });
+  const organization = await db.query.organizations.findFirst({
+    where: (organizations, { eq }) => eq(organizations.name, "schemlab"),
+  });
+  if (!role || !organization) return;
+  await db.insert(userOrganizationRoles).values({
+    userId: user[0]?.id,
+    organizationId: organization?.id,
+    roleId: role?.id,
+  });
 };
 
 export const updateUser = async (
