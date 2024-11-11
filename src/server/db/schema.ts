@@ -4,7 +4,6 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
-  index,
   integer,
   jsonb,
   pgEnum,
@@ -20,7 +19,7 @@ import type { AdapterAccountType } from "next-auth/adapters";
 
 export enum Role {
   ADMIN = "admin",
-  ORGADMIN = "org_admin",
+  ORGADMIN = "orgAdmin",
   INSTRUCTOR = "instructor",
   STUDENT = "student",
 }

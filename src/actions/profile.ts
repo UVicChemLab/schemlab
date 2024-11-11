@@ -2,14 +2,11 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
-
 import { ProfileSchema } from "~/lib/formSchemas";
 import {
   getUserByEmail,
   getUserById,
-  getAccountByUserId,
   updateUser,
-  getUserOrganizationRoles,
 } from "~/server/db/calls/auth";
 import { generateVerificationToken } from "~/lib/tokens";
 import { sendVerificationEmail } from "~/lib/mail";

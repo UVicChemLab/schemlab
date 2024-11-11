@@ -11,46 +11,47 @@ import {
   NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCurrentUser } from "~/hooks/use-current-user";
-import { Memo } from "@legendapp/state/react";
+import Image from "next/image";
+import { cn } from "~/lib/utils";
+import { Merriweather } from "next/font/google";
+const font = Merriweather({
+  subsets: ["latin"],
+  weight: ["400"],
+});
+import { appName } from "~/lib/utils";
 
 const NavBar = () => {
   const pathname = usePathname();
-  const user = useCurrentUser();
-  console.log("user", user);
 
   return (
     <header className="sticky top-0 w-full border-b">
-      <div className="flex h-14 items-center p-8">
+      <div className="m-2 flex items-center justify-between px-16">
+        <div className="flex items-center justify-start gap-4">
+          <Image src={"/compound.png"} width={50} height={50} alt="Logo" />
+          <h1 className={cn("text-3xl font-semibold", font.className)}>
+            {appName}
+          </h1>
+        </div>
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link href="/" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <div className={pathname === "/" ? "underline" : ""}>
+                  <div className={pathname === "/home" ? "underline" : ""}>
                     Home
                   </div>
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
-            <Memo>
-              {() =>
-                !user && (
-                  <NavigationMenuItem>
-                    <Link href="/auth/login" legacyBehavior passHref>
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        Sign In
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                )
-              }
-            </Memo>
+            <NavigationMenuItem>
+              <Link href="/auth/login" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  Sign In
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </div>

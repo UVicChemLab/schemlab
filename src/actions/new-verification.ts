@@ -1,12 +1,10 @@
 "use server";
 
+import { getUserByEmail, setUserEmailVerified } from "~/server/db/calls/auth";
 import {
-  getUserByEmail,
   getVerificationTokenByToken,
   deleteVerificationToken,
-  setUserEmailVerified,
-} from "~/server/db/calls/auth";
-
+} from "~/server/db/calls/tokens";
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
 

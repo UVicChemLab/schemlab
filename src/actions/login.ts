@@ -5,12 +5,12 @@ import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { signIn } from "~/server/auth";
 import { LoginSchema } from "~/lib/formSchemas";
+import { getUserByEmail } from "~/server/db/calls/auth";
 import {
-  getUserByEmail,
   getTwoFactorTokenByEmail,
   deleteTwoFactorToken,
   createTwoFactorToken,
-} from "~/server/db/calls/auth";
+} from "~/server/db/calls/tokens";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 import {
   generateVerificationToken,
@@ -108,7 +108,7 @@ export const login = async (
       redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
     });
 
-    // return { success: "Login Sucess!" };
+    return { success: "Login Sucess!" };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

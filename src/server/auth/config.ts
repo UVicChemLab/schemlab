@@ -13,15 +13,17 @@ import {
   getUserById,
   getAccountByUserId,
   setOAuthEmailVerified,
-  getTwoFactorTokenById,
-  deleteTwoFactorToken,
   getUserOrganizationRoles,
 } from "../db/calls/auth";
+import {
+  getTwoFactorTokenById,
+  deleteTwoFactorToken,
+} from "../db/calls/tokens";
 import bcrypt from "bcryptjs";
-import { DefaultJWT, JWT } from "next-auth/jwt";
-//import { JWT } from "@auth/core/jwt";
+import { DefaultJWT } from "next-auth/jwt";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import { create } from "domain";
 
 const providers: Provider[] = [
   Resend,
@@ -68,7 +70,7 @@ export const authConfig = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      // Allow OAuth without email verification
+      // Allow OAuth without custom email verification
       if (account?.provider !== "credentials") return true;
 
       if (!user.id) return false;
@@ -135,7 +137,13 @@ declare module "next-auth/jwt" {
     id?: string;
     isTwoFactorEnabled?: boolean;
     isOAuth?: boolean;
-    orgRoles?: { organizationName: string | null; roleName: string | null }[];
+    orgRoles?: {
+      organizationId: number;
+      organizationUniqueName: string;
+      organizationImage: string | null;
+      organizationName: string;
+      roleName: string;
+    }[];
   }
 }
 
@@ -143,5 +151,11 @@ export type ExtendedUser = {
   id?: string;
   isOAuth?: boolean;
   isTwoFactorEnabled?: boolean;
-  orgRoles?: { organizationName: string | null; roleName: string | null }[];
+  orgRoles?: {
+    organizationId: number;
+    organizationUniqueName: string;
+    organizationImage: string | null;
+    organizationName: string;
+    roleName: string;
+  }[];
 } & DefaultSession["user"];

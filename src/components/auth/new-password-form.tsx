@@ -49,7 +49,6 @@ const NewPasswordForm = () => {
         setSuccess(data?.success);
       });
     });
-    console.log(values);
   };
 
   return (

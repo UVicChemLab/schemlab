@@ -1,19 +1,18 @@
 "use server";
 
 import { db } from "~/server/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import {
   users,
   accounts,
-  verificationTokens,
-  passwordResetTokens,
-  twoFactorTokens,
   roles,
   organizations,
   userOrganizationRoles,
 } from "~/server/db/schema";
 import { Role } from "~/server/db/schema";
+import { appName } from "~/lib/utils";
 
+/*****************User*********** */
 export const getUserByEmail = async (email: string) => {
   return await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.email, email),
@@ -24,29 +23,20 @@ export const getUserById = async (id: string) => {
     where: (users, { eq }) => eq(users.id, id),
   });
 };
-
 export const createUser = async (
   name: string,
   email: string,
   password: string,
+  organization?: string,
+  role?: Role,
 ) => {
   const user = await db
     .insert(users)
     .values({ name, email, password })
     .returning();
   if (!user[0]) return;
-  const role = await db.query.roles.findFirst({
-    where: (roles, { eq }) => eq(roles.name, Role.STUDENT),
-  });
-  const organization = await db.query.organizations.findFirst({
-    where: (organizations, { eq }) => eq(organizations.name, "schemlab"),
-  });
-  if (!role || !organization) return;
-  await db.insert(userOrganizationRoles).values({
-    userId: user[0]?.id,
-    organizationId: organization?.id,
-    roleId: role?.id,
-  });
+
+  await createUserOrganizationRole(user[0].id, organization, role);
 };
 
 export const updateUser = async (
@@ -78,12 +68,6 @@ export const changePassword = async (id: string, password: string) => {
   return await db.update(users).set({ password }).where(eq(users.id, id));
 };
 
-export const getAccountByUserId = async (userId: string) => {
-  return await db.query.accounts.findFirst({
-    where: (accounts, { eq }) => eq(accounts.userId, userId),
-  });
-};
-
 export const setOAuthEmailVerified = async (userId: string) => {
   return await db
     .update(users)
@@ -101,128 +85,124 @@ export const addTwoFactorTokenReference = async (
     .where(eq(users.id, userid));
 };
 
-export const getVerificationTokenByEmail = async (email: string) => {
-  return await db.query.verificationTokens.findFirst({
-    where: (verificationTokens, { eq }) =>
-      eq(verificationTokens.identifier, email),
+export const getUserCount = async () => {
+  const res = await db.query.users.findMany();
+  return res.length;
+};
+
+/*****************Account*********** */
+
+export const getAccountByUserId = async (userId: string) => {
+  return await db.query.accounts.findFirst({
+    where: (accounts, { eq }) => eq(accounts.userId, userId),
   });
 };
 
-export const getVerificationTokenByToken = async (token: string) => {
-  return await db.query.verificationTokens.findFirst({
-    where: (verificationTokens, { eq }) => eq(verificationTokens.token, token),
-  });
-};
+/*****************Role*********** */
 
-export const deleteVerificationToken = async (email: string, token: string) => {
-  return await db
-    .delete(verificationTokens)
-    .where(
-      and(
-        eq(verificationTokens.identifier, email),
-        eq(verificationTokens.token, token),
-      ),
-    );
-};
-
-export const createVerificationToken = async (
-  identifier: string,
-  token: string,
-  expires: Date,
-) => {
-  return await db
-    .insert(verificationTokens)
-    .values({ identifier, token, expires })
-    .returning();
-};
-
-export const getPasswordResetTokenByToken = async (token: string) => {
-  return await db.query.passwordResetTokens.findFirst({
-    where: (passwordResetTokens, { eq }) =>
-      eq(passwordResetTokens.token, token),
-  });
-};
-
-export const getPasswordResetTokenByEmail = async (email: string) => {
-  return await db.query.passwordResetTokens.findFirst({
-    where: (passwordResetTokens, { eq }) =>
-      eq(passwordResetTokens.identifier, email),
-  });
-};
-
-export const deletePasswordResetToken = async (
-  email: string,
-  token: string,
-) => {
-  return await db
-    .delete(passwordResetTokens)
-    .where(
-      and(
-        eq(passwordResetTokens.identifier, email),
-        eq(passwordResetTokens.token, token),
-      ),
-    );
-};
-
-export const createPasswordResetToken = async (
-  identifier: string,
-  token: string,
-  expires: Date,
-) => {
-  return await db
-    .insert(passwordResetTokens)
-    .values({ identifier, token, expires })
-    .returning();
-};
-
-export const getTwoFactorTokenByToken = async (token: string) => {
-  return await db.query.twoFactorTokens.findFirst({
-    where: (twoFactorTokens, { eq }) => eq(twoFactorTokens.token, token),
-  });
-};
-
-export const getTwoFactorTokenByEmail = async (email: string) => {
-  return await db.query.twoFactorTokens.findFirst({
-    where: (twoFactorTokens, { eq }) => eq(twoFactorTokens.identifier, email),
-  });
-};
-
-export const getTwoFactorTokenById = async (id: string) => {
-  return await db.query.twoFactorTokens.findFirst({
-    where: (twoFactorTokens, { eq }) => eq(twoFactorTokens.id, id),
-  });
-};
-
-export const deleteTwoFactorToken = async (id: string) => {
-  return await db.delete(twoFactorTokens).where(eq(twoFactorTokens.id, id));
-};
-
-export const createTwoFactorToken = async (
-  identifier: string,
-  token: string,
-  expires: Date,
-) => {
-  return await db
-    .insert(twoFactorTokens)
-    .values({ identifier, token, expires })
-    .returning();
+export type RoleCallReturn = {
+  id: number;
+  name: Role;
 };
 
 export const getRoles = async () => {
-  return await db.query.roles.findMany();
+  return await db.query.roles.findMany({
+    columns: {
+      id: true,
+      name: true,
+    },
+  });
 };
 
+export const getDefaultRoleId = async () => {
+  return await db.query.roles.findFirst({
+    columns: {
+      id: true,
+    },
+    where: (roles, { eq }) => eq(roles.name, Role.STUDENT),
+  });
+};
+
+/*****************Organization*********** */
+export const getAllOrganizations = async () => {
+  return await db.query.organizations.findMany({
+    columns: {
+      id: true,
+      uniqueName: true,
+      name: true,
+      image: true,
+    },
+  });
+};
+
+export const getDefaultOrgId = async () => {
+  return await db.query.organizations.findFirst({
+    columns: {
+      id: true,
+    },
+    where: (organizations, { eq }) => eq(organizations.uniqueName, appName),
+  });
+};
+
+/******************UserOrganizationRole*********** */
 export const getUserOrganizationRoles = async (userId: string) => {
   return await db
     .select({
+      organizationId: organizations.id,
+      organizationUniqueName: organizations.uniqueName,
+      organizationImage: organizations.image,
       organizationName: organizations.name,
       roleName: roles.name,
     })
     .from(userOrganizationRoles)
-    .leftJoin(
+    .innerJoin(
       organizations,
       eq(organizations.id, userOrganizationRoles.organizationId),
     )
-    .leftJoin(roles, eq(roles.id, userOrganizationRoles.roleId))
+    .innerJoin(roles, eq(roles.id, userOrganizationRoles.roleId))
     .where(eq(userOrganizationRoles.userId, userId));
+};
+
+export const createUserOrganizationRole = async (
+  userId: string,
+  organizationUniqueName?: string,
+  roleName?: Role,
+) => {
+  const organizationId = await db
+    .select({ id: organizations.id })
+    .from(organizations)
+    .where(eq(organizations.uniqueName, organizationUniqueName || appName));
+  const roleId = await db
+    .select({ id: roles.id })
+    .from(roles)
+    .where(eq(roles.name, roleName || Role.STUDENT));
+
+  if (!organizationId[0] || !roleId[0]) return;
+  return await db.insert(userOrganizationRoles).values({
+    userId,
+    organizationId: organizationId[0].id,
+    roleId: roleId[0].id,
+  });
+};
+
+export const createOAuthUserOrganizationRole = async () => {
+  const noRelUsers = await db
+    .select({ id: users.id })
+    .from(users)
+    .leftJoin(userOrganizationRoles, eq(users.id, userOrganizationRoles.userId))
+    .groupBy(users.id)
+    .having(() => eq(count(userOrganizationRoles.userId), 0));
+  if (noRelUsers.length !== 0) {
+    const roleId = await getDefaultRoleId();
+    const orgId = await getDefaultOrgId();
+    if (roleId && orgId) {
+      noRelUsers.forEach(async (user) => {
+        await db.insert(userOrganizationRoles).values({
+          userId: user.id,
+          organizationId: orgId.id,
+          roleId: roleId.id,
+        });
+      });
+    }
+  }
 };

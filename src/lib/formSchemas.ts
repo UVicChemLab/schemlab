@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { Role } from "~/server/db/schema";
+import { appName } from "./utils";
 
 export const LoginSchema = z.object({
   email: z.string().email({
@@ -21,6 +22,8 @@ export const RegisterSchema = z.object({
   name: z.string().min(1, {
     message: "Name is required",
   }),
+  organization: z.string().default(appName),
+  role: z.nativeEnum(Role).default(Role.STUDENT),
 });
 
 export const ResetSchema = z.object({

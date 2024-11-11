@@ -11,7 +11,7 @@ export default async function OrgHomePage({
       <div>{org}</div>
 
       <Link
-        href={`/admin?api_path=${process.env.PUBLIC_URL}${process.env.REACT_APP_API_PATH}`}
+        href={`/schemlab/admin?api_path=${process.env.PUBLIC_URL}${process.env.REACT_APP_API_PATH}`}
       >
         <Button>Add Question</Button>
       </Link>

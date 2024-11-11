@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
-
 import {
   getVerificationTokenByEmail,
   deleteVerificationToken,
@@ -11,7 +10,7 @@ import {
   getTwoFactorTokenByEmail,
   deleteTwoFactorToken,
   createTwoFactorToken,
-} from "~/server/db/calls/auth";
+} from "~/server/db/calls/tokens";
 
 export const generateVerificationToken = async (email: string) => {
   const token = uuidv4();

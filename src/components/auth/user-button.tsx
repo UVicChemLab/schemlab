@@ -27,7 +27,7 @@ export const UserButton = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-40" align="end">
-        <Link href="/profile" className="w-full">
+        <Link href="/schemlab/profile" className="w-full">
           <Button className="w-full" variant="ghost">
             <DropdownMenuItem>Profile</DropdownMenuItem>
           </Button>

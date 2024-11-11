@@ -45,7 +45,6 @@ const ResetForm = () => {
         setSuccess(data?.success);
       });
     });
-    console.log(values);
   };
 
   return (

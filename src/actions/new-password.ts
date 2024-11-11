@@ -3,12 +3,11 @@
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 
+import { getUserByEmail, changePassword } from "~/server/db/calls/auth";
 import {
-  getUserByEmail,
   getPasswordResetTokenByToken,
   deletePasswordResetToken,
-  changePassword,
-} from "~/server/db/calls/auth";
+} from "~/server/db/calls/tokens";
 import { NewPasswordSchema } from "~/lib/formSchemas";
 
 export const newPassword = async (

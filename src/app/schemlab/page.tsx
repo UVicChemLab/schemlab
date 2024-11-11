@@ -1,10 +1,21 @@
 "use client";
-import { useCurrentUser } from "~/hooks/use-current-user";
 import { useRole } from "~/components/role-provider";
-import { redirect } from "next/navigation";
-export default function SchemlabPage() {
-  const user = useCurrentUser();
-  console.log("inside schemlab", user);
+import { CircleLoader } from "react-spinners";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser } from "~/actions/profile";
+
+const SchemlabPage = () => {
   const { organization } = useRole();
-  redirect(`/schemlab/${organization.get()}/home`);
-}
+  const router = useRouter();
+  router.push(`/schemlab/${organization.uniqueName.get()}/home`);
+
+  if (!organization)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <CircleLoader color="blue" />
+      </div>
+    );
+};
+
+export default SchemlabPage;
