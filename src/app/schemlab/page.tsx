@@ -1,14 +1,17 @@
 "use client";
-import { useRole } from "~/components/role-provider";
+import { useProfile } from "~/components/profile-provider";
 import { CircleLoader } from "react-spinners";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser } from "~/actions/profile";
 
 const SchemlabPage = () => {
-  const { organization } = useRole();
+  const { organization } = useProfile();
   const router = useRouter();
-  router.push(`/schemlab/${organization.uniqueName.get()}/home`);
+
+  useEffect(() => {
+    router.push(`/schemlab/${organization.uniqueName.get()}/home`);
+  }, [organization, router]);
 
   if (!organization)
     return (

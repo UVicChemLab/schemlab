@@ -27,15 +27,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import CardWrapper from "~/components/auth/card-wrapper";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -45,7 +36,7 @@ import { register } from "~/actions/register";
 import { Memo } from "@legendapp/state/react";
 import { observable } from "@legendapp/state";
 import { getAllOrganizations, getRoles } from "~/server/db/calls/auth";
-import { Organization } from "~/components/role-provider";
+import { Organization } from "~/components/profile-provider";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { appName, cn, capitalize } from "~/lib/utils";
 import { type RoleCallReturn } from "~/server/db/calls/auth";

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { type ExtendedUser } from "~/server/auth/config";
-import { useRole } from "~/components/role-provider";
+import { useProfile } from "~/components/profile-provider";
 import { Memo } from "@legendapp/state/react";
 
 interface UserInfoProps {
@@ -10,7 +10,7 @@ interface UserInfoProps {
 }
 
 const UserInfo = ({ user, label }: UserInfoProps) => {
-  const { role } = useRole();
+  const { role } = useProfile();
   return (
     <Card className="w-[600px] shadow-md">
       <CardHeader>

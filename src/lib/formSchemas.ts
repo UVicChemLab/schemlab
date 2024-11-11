@@ -45,7 +45,7 @@ export const ProfileSchema = z
     email: z.optional(z.string().email()),
     password: z.optional(z.string().min(6)),
     newPassword: z.optional(z.string().min(6)),
-    role: z.optional(z.nativeEnum(Role)),
+    organization: z.optional(z.string()),
   })
   .refine(
     (data) => {

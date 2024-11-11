@@ -12,6 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { LogoutButton } from "~/components/auth/logout-button";
 import Link from "next/link";
 import { useCurrentUser } from "~/hooks/use-current-user";
+import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 
 export const UserButton = () => {
   const user = useCurrentUser();
@@ -27,7 +28,10 @@ export const UserButton = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-40" align="end">
-        <Link href="/schemlab/profile" className="w-full">
+        <Link
+          href={`${DEFAULT_LOGIN_REDIRECT}/user/profile`}
+          className="w-full"
+        >
           <Button className="w-full" variant="ghost">
             <DropdownMenuItem>Profile</DropdownMenuItem>
           </Button>

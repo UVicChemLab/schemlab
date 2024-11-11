@@ -20,7 +20,7 @@ function isRole(value: string | null): value is Role {
   return (Object.values(Role) as string[]).includes(value);
 }
 
-const roleState$ = observable({
+const profileState$ = observable({
   role: Role.STUDENT,
   organization: {
     id: 1,
@@ -47,26 +47,32 @@ const roleState$ = observable({
   } as ExtendedUser,
   setRole: (role: Role, organization: Organization) => {
     if (isRole(role)) {
-      roleState$.assign({ role, organization });
+      profileState$.assign({ role, organization });
     } else {
       console.error("Invalid role:", role);
     }
   },
 });
 
-syncObservable(roleState$, {
+syncObservable(profileState$, {
   persist: {
-    name: "UserRole",
+    name: "UserProfile",
     plugin: ObservablePersistLocalStorage,
   },
 });
 
-const RoleContext = createContext(roleState$);
+const ProfileContext = createContext(profileState$);
 
-export const RoleProvider = ({ children }: { children: React.ReactNode }) => {
+export const ProfileProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   return (
-    <RoleContext.Provider value={roleState$}>{children}</RoleContext.Provider>
+    <ProfileContext.Provider value={profileState$}>
+      {children}
+    </ProfileContext.Provider>
   );
 };
 
-export const useRole = () => useContext(RoleContext);
+export const useProfile = () => useContext(ProfileContext);

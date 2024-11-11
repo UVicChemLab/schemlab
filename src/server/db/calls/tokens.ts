@@ -7,7 +7,6 @@ import {
   passwordResetTokens,
   twoFactorTokens,
 } from "~/server/db/schema";
-import { Role } from "~/server/db/schema";
 
 export const getVerificationTokenByEmail = async (email: string) => {
   return await db.query.verificationTokens.findFirst({

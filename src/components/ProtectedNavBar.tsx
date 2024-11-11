@@ -27,9 +27,9 @@ import { useCurrentUser } from "~/hooks/use-current-user";
 import Image from "next/image";
 import { Merriweather } from "next/font/google";
 import { appName, cn } from "~/lib/utils";
-import { useRole } from "~/components/role-provider";
+import { useProfile } from "~/components/profile-provider";
 import { Memo, observer } from "@legendapp/state/react";
-import { type Organization } from "~/components/role-provider";
+import { type Organization } from "~/components/profile-provider";
 import { type ExtendedUser } from "~/server/auth/config";
 import { Role } from "~/server/db/schema";
 import { useRouter } from "next/navigation";
@@ -72,7 +72,7 @@ const selectOrg = (
 
 const ProtectedNavBar = function () {
   const pathname = usePathname();
-  const { user, role, organization, setRole } = useRole();
+  const { user, role, organization, setRole } = useProfile();
   const router = useRouter();
 
   useEffect(() => {
@@ -147,6 +147,7 @@ const ProtectedNavBar = function () {
                   >
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}
+                      suppressHydrationWarning
                     >
                       {capitalize(role.get())}
                     </NavigationMenuLink>

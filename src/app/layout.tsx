@@ -6,7 +6,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { ModeToggle } from "~/components/Mode-Toggle";
 import { SessionProvider } from "next-auth/react";
-import { RoleProvider } from "~/components/role-provider";
+import { ProfileProvider } from "~/components/profile-provider";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <RoleProvider>
+      <ProfileProvider>
         <html
           lang="en"
           className={`${GeistSans.variable}`}
@@ -43,7 +43,7 @@ export default async function RootLayout({
             </ThemeProvider>
           </body>
         </html>
-      </RoleProvider>
+      </ProfileProvider>
     </SessionProvider>
   );
 }
