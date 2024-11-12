@@ -65,9 +65,10 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      const orgCall: Promise<Organization[]> = getAllOrganizations();
-      const [orgData] = await Promise.all([orgCall]);
-      organizations$.set(orgData);
+      const orgData = await getAllOrganizations();
+      if (orgData) {
+        organizations$.set(orgData);
+      }
     };
 
     fetchOrganizations();
@@ -130,24 +131,26 @@ const ProfilePage = () => {
               />
 
               {/***********Provider Only******** */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="john.doe@example.com"
-                        type="email"
-                        disabled={true}
-                        value={user.email.get() || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {user.isOAuth.get() && (
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="john.doe@example.com"
+                          type="email"
+                          disabled={true}
+                          value={user.email.get() || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/******Credentials Only******** */}
               {/**User Email */}
@@ -256,14 +259,19 @@ const ProfilePage = () => {
                               !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value
-                              ? organizations$
-                                  .get()
-                                  .find(
-                                    (organization) =>
-                                      organization.uniqueName === field.value,
-                                  )?.uniqueName
-                              : "Select Organization"}
+                            <Memo>
+                              {() =>
+                                field.value
+                                  ? organizations$
+                                      .get()
+                                      .find(
+                                        (organization) =>
+                                          organization.uniqueName ===
+                                          field.value,
+                                      )?.uniqueName
+                                  : "Select Organization"
+                              }
+                            </Memo>
                             <ChevronsUpDown className="opacity-50" />
                           </Button>
                         </FormControl>
@@ -351,4 +359,4 @@ const ProfilePage = () => {
   );
 };
 
-export default observer(ProfilePage);
+export default ProfilePage;

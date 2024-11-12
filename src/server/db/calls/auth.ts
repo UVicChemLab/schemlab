@@ -105,7 +105,7 @@ export type RoleCallReturn = {
   name: Role;
 };
 
-export const getRoles = async () => {
+export const getAllRoles = async () => {
   return await db.query.roles.findMany({
     columns: {
       id: true,
@@ -114,12 +114,13 @@ export const getRoles = async () => {
   });
 };
 
-export const getDefaultRoleId = async () => {
+export const getRoleById = async (roleId: number) => {
   return await db.query.roles.findFirst({
     columns: {
       id: true,
+      name: true,
     },
-    where: (roles, { eq }) => eq(roles.name, Role.STUDENT),
+    where: (roles, { eq }) => eq(roles.id, roleId),
   });
 };
 
@@ -135,12 +136,15 @@ export const getAllOrganizations = async () => {
   });
 };
 
-export const getDefaultOrgId = async () => {
+export const getOrgById = async (orgId: number) => {
   return await db.query.organizations.findFirst({
     columns: {
       id: true,
+      uniqueName: true,
+      name: true,
+      image: true,
     },
-    where: (organizations, { eq }) => eq(organizations.uniqueName, appName),
+    where: (organizations, { eq }) => eq(organizations.id, orgId),
   });
 };
 
@@ -177,32 +181,33 @@ export const createUserOrganizationRole = async (
     .from(roles)
     .where(eq(roles.name, roleName || Role.STUDENT));
 
-  if (!organizationId[0] || !roleId[0]) return;
-  return await db.insert(userOrganizationRoles).values({
-    userId,
-    organizationId: organizationId[0].id,
-    roleId: roleId[0].id,
-  });
-};
-
-export const createOAuthUserOrganizationRole = async () => {
-  const noRelUsers = await db
-    .select({ id: users.id })
-    .from(users)
-    .leftJoin(userOrganizationRoles, eq(users.id, userOrganizationRoles.userId))
-    .groupBy(users.id)
-    .having(() => eq(count(userOrganizationRoles.userId), 0));
-  if (noRelUsers.length !== 0) {
-    const roleId = await getDefaultRoleId();
-    const orgId = await getDefaultOrgId();
-    if (roleId && orgId) {
-      noRelUsers.forEach(async (user) => {
-        await db.insert(userOrganizationRoles).values({
-          userId: user.id,
-          organizationId: orgId.id,
-          roleId: roleId.id,
-        });
-      });
+  if (organizationId[0]?.id && roleId[0]?.id) {
+    const org_id = organizationId[0].id;
+    const role_id = roleId[0].id;
+    const checkExisting = await db.query.userOrganizationRoles.findFirst({
+      where: (userOrganizationRoles, { and, eq }) =>
+        and(
+          eq(userOrganizationRoles.userId, userId),
+          eq(userOrganizationRoles.organizationId, org_id),
+          eq(userOrganizationRoles.roleId, role_id),
+        ),
+    });
+    if (!checkExisting) {
+      return await db
+        .insert(userOrganizationRoles)
+        .values({
+          userId,
+          organizationId: org_id,
+          roleId: role_id,
+        })
+        .returning();
+    } else {
+      return [
+        {
+          roleId: role_id,
+          organizationId: org_id,
+        },
+      ];
     }
   }
 };

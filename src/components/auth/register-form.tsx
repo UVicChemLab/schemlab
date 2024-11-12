@@ -1,7 +1,7 @@
 "use client";
 
 import * as z from "zod";
-import { useEffect, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema } from "~/lib/formSchemas";
@@ -33,9 +33,9 @@ import { Button } from "~/components/ui/button";
 import { FormError } from "~/components/ui/form-error";
 import { FormSucess } from "~/components/ui/form-success";
 import { register } from "~/actions/register";
-import { Memo } from "@legendapp/state/react";
-import { observable } from "@legendapp/state";
-import { getAllOrganizations, getRoles } from "~/server/db/calls/auth";
+import { Memo, observer } from "@legendapp/state/react";
+import { observable, observe } from "@legendapp/state";
+import { getAllOrganizations, getAllRoles } from "~/server/db/calls/auth";
 import { Organization } from "~/components/profile-provider";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { appName, cn, capitalize } from "~/lib/utils";
@@ -43,8 +43,8 @@ import { type RoleCallReturn } from "~/server/db/calls/auth";
 import { Role } from "~/server/db/schema";
 
 const RegisterForm = () => {
-  const error$ = observable("");
-  const success$ = observable("");
+  const [success, setSuccess] = useState<string | undefined>();
+  const [error, setError] = useState<string | undefined>();
   const organizations$ = observable<Organization[]>([]);
   const roles$ = observable<RoleCallReturn[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -52,14 +52,16 @@ const RegisterForm = () => {
   useEffect(() => {
     const fetchOrganizations = async () => {
       const orgCall: Promise<Organization[]> = getAllOrganizations();
-      const roleCall: Promise<RoleCallReturn[]> = getRoles();
+      const roleCall: Promise<RoleCallReturn[]> = getAllRoles();
       const [orgData, roleData] = await Promise.all([orgCall, roleCall]);
-      organizations$.set(orgData);
-      roles$.set(roleData);
+      observe(() => {
+        organizations$.set(orgData);
+        roles$.set(roleData);
+      });
     };
 
     fetchOrganizations();
-  }, []);
+  }, [organizations$, roles$]);
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
@@ -71,13 +73,15 @@ const RegisterForm = () => {
   });
 
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
-    error$.set("");
-    success$.set("");
+    setError(undefined);
+    setSuccess(undefined);
 
     startTransition(() => {
       register(values).then((data) => {
-        if (data.error) error$.set(data.error);
-        else if (data.sucess) success$.set(data.sucess);
+        observe(() => {
+          if (data.error) setError(() => data.error);
+          else if (data.sucess) setSuccess(() => data.sucess);
+        });
       });
     });
   };
@@ -153,15 +157,9 @@ const RegisterForm = () => {
                             "justify-between",
                             !field.value && "text-muted-foreground",
                           )}
+                          disabled={isPending}
                         >
-                          {field.value
-                            ? organizations$
-                                .get()
-                                .find(
-                                  (organization) =>
-                                    organization.uniqueName === field.value,
-                                )?.uniqueName
-                            : "Select Organization"}
+                          {field.value || "Select Organization"}
                           <ChevronsUpDown className="opacity-50" />
                         </Button>
                       </FormControl>
@@ -276,8 +274,8 @@ const RegisterForm = () => {
               )}
             />
           </div>
-          <FormError message={error$.get()} />
-          <FormSucess message={success$.get()} />
+          <FormError message={error} />
+          <FormSucess message={success} />
           <Button disabled={isPending} type="submit" className="w-full">
             Create an account
           </Button>

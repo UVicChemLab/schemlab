@@ -64,7 +64,10 @@ const LoginForm = () => {
             setShowTwoFactor(() => true);
           }
         })
-        .catch(() => setError(() => "Something went wrong"));
+        .catch((e) => {
+          setError(() => e.message);
+          console.error("Comming from here", e.message, e.type);
+        });
     });
   };
 

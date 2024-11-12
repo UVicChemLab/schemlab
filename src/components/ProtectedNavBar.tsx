@@ -36,8 +36,6 @@ import { useRouter } from "next/navigation";
 import { capitalize } from "~/lib/utils";
 import { getCurrentUser } from "~/actions/profile";
 import { useEffect } from "react";
-import { createOAuthUserOrganizationRole } from "~/server/db/calls/auth";
-import { observe } from "@legendapp/state";
 
 const font = Merriweather({
   subsets: ["latin"],
@@ -77,9 +75,7 @@ const ProtectedNavBar = function () {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const oAuthCheckCall: Promise<void> = createOAuthUserOrganizationRole();
-      const userCall: Promise<ExtendedUser | null> = getCurrentUser();
-      const [_, userData] = await Promise.all([oAuthCheckCall, userCall]);
+      const userData = await getCurrentUser();
       if (!userData) {
         router.refresh();
       } else {

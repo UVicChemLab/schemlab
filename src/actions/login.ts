@@ -17,6 +17,8 @@ import {
   generateTwoFactorToken,
 } from "~/lib/tokens";
 import { sendVerificationEmail, sendTwoFactorTokenEmail } from "~/lib/mail";
+import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect";
 
 export const login = async (
   values: z.infer<typeof LoginSchema>,
@@ -33,7 +35,7 @@ export const login = async (
   const existingUser = await getUserByEmail(email);
 
   if (!existingUser || !existingUser.email || !existingUser.password) {
-    return { error: "Email does not exist!" };
+    return { error: "No Account on this email!" };
   }
 
   if (!existingUser.emailVerified) {
@@ -109,16 +111,23 @@ export const login = async (
     });
 
     return { success: "Login Sucess!" };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
+  } catch (e) {
+    if (e instanceof AuthError) {
+      if (isRedirectError(e)) {
+        throw e;
+      }
+      const { type, cause } = e;
+      switch (type) {
         case "CredentialsSignin":
           return { error: "Invalid credentials!" };
+        case "CallbackRouteError":
+          return { error: cause?.err?.message };
         default:
-          return { error: "Something went wrong!" };
+          return { error: e.message };
       }
     }
-
-    throw error;
+    throw e;
+  } finally {
+    redirect(callbackUrl || DEFAULT_LOGIN_REDIRECT);
   }
 };

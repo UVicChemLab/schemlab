@@ -14,6 +14,9 @@ import {
   getAccountByUserId,
   setOAuthEmailVerified,
   getUserOrganizationRoles,
+  getRoleById,
+  getOrgById,
+  createUserOrganizationRole,
 } from "../db/calls/auth";
 import {
   getTwoFactorTokenById,
@@ -24,6 +27,7 @@ import { DefaultJWT } from "next-auth/jwt";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { create } from "domain";
+import { get } from "http";
 
 const providers: Provider[] = [
   Resend,
@@ -92,27 +96,56 @@ export const authConfig = {
     },
     async session({ session, token }) {
       if (token?.accessToken) session.accessToken = token.accessToken;
-      if (token?.id) session.user.id = token.id;
-      if (token?.isTwoFactorEnabled)
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
-      if (token?.isOAuth) session.user.isOAuth = token.isOAuth;
-      if (token?.orgRoles) session.user.orgRoles = token.orgRoles;
+      session.user.id = token.id;
+      session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
+      session.user.isOAuth = token.isOAuth;
+      session.user.orgRoles = token.orgRoles;
       return session;
     },
     async jwt({ token, trigger, session, account, user }) {
-      if (trigger === "update") token.name = session.user.name;
-      if (account?.provider === "keycloak") {
-        return { ...token, accessToken: account.access_token };
-      }
-      if (user?.id) {
+      if (trigger === "update") {
+        token.name = session.user.name;
+        token.email = session.user.email;
+        token.isTwoFactorEnabled = session.user.isTwoFactorEnabled;
+        token.isOAuth = session.user.isOAuth;
+        token.orgRoles = session.user.orgRoles;
+      } else if (user?.id) {
         token.id = user.id;
-        const existingUser = await getUserById(user.id);
-        const existingAccount = await getAccountByUserId(user.id);
-        if (existingUser?.isTwoFactorEnabled)
-          token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
-        token.isOAuth = !!existingAccount;
-        const orgRoles = await getUserOrganizationRoles(user.id);
-        if (orgRoles) token.orgRoles = orgRoles;
+        if (account?.provider === "credentials") {
+          token.isOAuth = false;
+        } else {
+          token.isOAuth = !!account;
+        }
+        if (trigger === "signUp") {
+          token.isTwoFactorEnabled = false;
+          const defaultOrgRole = await createUserOrganizationRole(user.id);
+          if (
+            !defaultOrgRole ||
+            defaultOrgRole.length === 0 ||
+            !defaultOrgRole[0]
+          )
+            return token;
+          const defautlRole = await getRoleById(defaultOrgRole[0].roleId);
+          const defaultOrg = await getOrgById(defaultOrgRole[0].organizationId);
+          if (defautlRole && defaultOrg) {
+            token.orgRoles = [
+              {
+                organizationId: defaultOrg.id,
+                organizationUniqueName: defaultOrg.uniqueName,
+                organizationImage: defaultOrg.image,
+                organizationName: defaultOrg.name,
+                roleName: defautlRole.name,
+              },
+            ];
+          }
+        } else if (trigger === "signIn") {
+          const existingUser = await getUserById(user.id);
+          if (existingUser)
+            token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
+          else token.isTwoFactorEnabled = false;
+          const orgRoles = await getUserOrganizationRoles(user.id);
+          if (orgRoles) token.orgRoles = orgRoles;
+        }
       }
       return token;
     },
@@ -134,10 +167,10 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     accessToken?: string;
-    id?: string;
-    isTwoFactorEnabled?: boolean;
-    isOAuth?: boolean;
-    orgRoles?: {
+    id: string;
+    isTwoFactorEnabled: boolean;
+    isOAuth: boolean;
+    orgRoles: {
       organizationId: number;
       organizationUniqueName: string;
       organizationImage: string | null;
@@ -148,10 +181,10 @@ declare module "next-auth/jwt" {
 }
 
 export type ExtendedUser = {
-  id?: string;
-  isOAuth?: boolean;
-  isTwoFactorEnabled?: boolean;
-  orgRoles?: {
+  id: string;
+  isOAuth: boolean;
+  isTwoFactorEnabled: boolean;
+  orgRoles: {
     organizationId: number;
     organizationUniqueName: string;
     organizationImage: string | null;
