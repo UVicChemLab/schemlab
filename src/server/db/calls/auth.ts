@@ -11,6 +11,8 @@ import {
 } from "~/server/db/schema";
 import { Role } from "~/server/db/schema";
 import { appName } from "~/lib/utils";
+import { Error } from "postgres";
+import { ExtendedUser } from "~/server/auth/config";
 
 /*****************User*********** */
 export const getUserByEmail = async (email: string) => {
@@ -124,6 +126,16 @@ export const getRoleById = async (roleId: number) => {
   });
 };
 
+export const getRoleByName = async (name: Role) => {
+  return await db.query.roles.findFirst({
+    columns: {
+      id: true,
+      name: true,
+    },
+    where: (roles, { eq }) => eq(roles.name, name),
+  });
+};
+
 /*****************Organization*********** */
 export const getAllOrganizations = async () => {
   return await db.query.organizations.findMany({
@@ -146,6 +158,49 @@ export const getOrgById = async (orgId: number) => {
     },
     where: (organizations, { eq }) => eq(organizations.id, orgId),
   });
+};
+
+export const createOrganization = async (
+  userId: string,
+  uniqueName: string,
+  name: string,
+  desc?: string,
+  image?: string,
+  link?: string,
+) => {
+  const organization = await db
+    .insert(organizations)
+    .values({ uniqueName, name, desc, image, link, createdBy: userId })
+    .returning();
+
+  const role = await db
+    .insert(roles)
+    .values({ name: Role.ORGADMIN })
+    .returning();
+
+  if (organization[0] && role[0]) {
+    await db.insert(userOrganizationRoles).values({
+      userId,
+      organizationId: organization[0].id,
+      roleId: role[0].id,
+    });
+    return {
+      success: true,
+      message: "Organization created successfully",
+      organization: {
+        organizationId: organization[0].id,
+        organizationUniqueName: organization[0].uniqueName,
+        organizationName: organization[0].name,
+        organizationImage: organization[0].image,
+        roleName: role[0].name as string,
+      } as ExtendedUser["orgRoles"][0],
+    };
+  } else {
+    return {
+      success: false,
+      message: `Organization with uniqueName ${uniqueName} already exists`,
+    };
+  }
 };
 
 /******************UserOrganizationRole*********** */

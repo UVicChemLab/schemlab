@@ -157,9 +157,9 @@ export const organizations = pgTable("organization", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  /*createdBy: text("userId")
+  createdBy: text("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),*/
+    .references(() => users.id, { onDelete: "cascade" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
     () => new Date(),
   ),

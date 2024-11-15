@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { Role } from "~/server/db/schema";
 import { appName } from "./utils";
+import { desc } from "drizzle-orm";
 
 export const LoginSchema = z.object({
   email: z.string().email({
@@ -73,3 +74,15 @@ export const ProfileSchema = z
       path: ["password"],
     },
   );
+
+export const OrganizationSchema = z.object({
+  name: z.string().min(1, {
+    message: "Name is required",
+  }),
+  uniqueName: z.string().min(1, {
+    message: "Unique name is required",
+  }),
+  description: z.optional(z.string()),
+  link: z.optional(z.string()),
+  image: z.optional(z.string()),
+});

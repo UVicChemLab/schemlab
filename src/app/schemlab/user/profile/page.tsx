@@ -53,13 +53,14 @@ import { cn } from "~/lib/utils";
 import { Organization } from "~/components/profile-provider";
 import { getAllOrganizations } from "~/server/db/calls/auth";
 import { Check, ChevronsUpDown } from "lucide-react";
+import AddOrganizationDialog from "~/components/AddOrganizationDialog";
 
 const ProfilePage = () => {
   const [isPending, startTransition] = useTransition();
   const error$ = observable<string | undefined>();
   const success$ = observable<string | undefined>();
   const organizations$ = observable<Organization[]>([]);
-  const { update } = useSession();
+  const { update, data } = useSession();
 
   const { user } = useProfile();
 
@@ -241,82 +242,89 @@ const ProfilePage = () => {
                 </>
               )}
 
-              {/*Join Organization */}
+              {/*Join Organization Or Create Your Own*/}
               <FormField
                 control={form.control}
                 name="organization"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="my-2">Join an Organization</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "justify-between",
-                              !field.value && "text-muted-foreground",
-                            )}
-                          >
-                            <Memo>
-                              {() =>
-                                field.value
-                                  ? organizations$
-                                      .get()
-                                      .find(
-                                        (organization) =>
-                                          organization.uniqueName ===
-                                          field.value,
-                                      )?.uniqueName
-                                  : "Select Organization"
-                              }
-                            </Memo>
-                            <ChevronsUpDown className="opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search organization..."
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No Organization found.</CommandEmpty>
-                            <CommandGroup>
+                    <FormLabel className="my-2">
+                      Join an Organization or Create Your Own
+                    </FormLabel>
+                    <div className="flex w-full flex-row items-center justify-between space-x-6">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
                               <Memo>
                                 {() =>
-                                  organizations$.get().map((organization) => (
-                                    <CommandItem
-                                      value={organization.uniqueName}
-                                      key={organization.id}
-                                      onSelect={() => {
-                                        form.setValue(
-                                          "organization",
-                                          organization.uniqueName,
-                                        );
-                                      }}
-                                    >
-                                      {organization.uniqueName}
-                                      <Check
-                                        className={cn(
-                                          "ml-auto",
-                                          organization.uniqueName ===
-                                            field.value
-                                            ? "opacity-100"
-                                            : "opacity-0",
-                                        )}
-                                      />
-                                    </CommandItem>
-                                  ))
+                                  field.value
+                                    ? organizations$
+                                        .get()
+                                        .find(
+                                          (organization) =>
+                                            organization.uniqueName ===
+                                            field.value,
+                                        )?.uniqueName
+                                    : "Select Organization"
                                 }
                               </Memo>
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                              <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search organization..."
+                              className="h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>
+                                No Organization found.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                <Memo>
+                                  {() =>
+                                    organizations$.get().map((organization) => (
+                                      <CommandItem
+                                        value={organization.uniqueName}
+                                        key={organization.id}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            "organization",
+                                            organization.uniqueName,
+                                          );
+                                        }}
+                                      >
+                                        {organization.uniqueName}
+                                        <Check
+                                          className={cn(
+                                            "ml-auto",
+                                            organization.uniqueName ===
+                                              field.value
+                                              ? "opacity-100"
+                                              : "opacity-0",
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))
+                                  }
+                                </Memo>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <AddOrganizationDialog />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -324,7 +332,7 @@ const ProfilePage = () => {
             </div>
             <FormError message={error$.get()} />
             <FormSucess message={success$.get()} />
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="w-full">
               Save
             </Button>
           </form>
@@ -341,17 +349,25 @@ const ProfilePage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {user.orgRoles.get()?.map((orgRole) => (
-              <TableRow key={orgRole.organizationId}>
-                <TableCell className="font-medium">
-                  {orgRole.organizationUniqueName}
-                </TableCell>
-                <TableCell>{orgRole.organizationName}</TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={"default"}>{orgRole.roleName}</Badge>
-                </TableCell>
-              </TableRow>
-            ))}
+            <Memo>
+              {() =>
+                user.orgRoles.get()?.map((orgRole) => (
+                  <TableRow key={orgRole.organizationId}>
+                    <TableCell className="font-medium">
+                      {orgRole.organizationUniqueName}
+                    </TableCell>
+                    <TableCell suppressHydrationWarning>
+                      {orgRole.organizationName}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={"default"} suppressHydrationWarning>
+                        {orgRole.roleName}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              }
+            </Memo>
           </TableBody>
         </Table>
       </CardContent>
