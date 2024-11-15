@@ -11,8 +11,6 @@ import {
 } from "~/server/db/schema";
 import { Role } from "~/server/db/schema";
 import { appName } from "~/lib/utils";
-import { Error } from "postgres";
-import { ExtendedUser } from "~/server/auth/config";
 
 /*****************User*********** */
 export const getUserByEmail = async (email: string) => {
@@ -144,10 +142,23 @@ export const getAllOrganizations = async () => {
       uniqueName: true,
       name: true,
       image: true,
+      link: true,
     },
   });
 };
 
+export const getOrgByUniqueName = async (uniqueName: string) => {
+  return await db.query.organizations.findFirst({
+    columns: {
+      id: true,
+      uniqueName: true,
+      name: true,
+      image: true,
+      link: true,
+    },
+    where: (organizations, { eq }) => eq(organizations.uniqueName, uniqueName),
+  });
+};
 export const getOrgById = async (orgId: number) => {
   return await db.query.organizations.findFirst({
     columns: {
@@ -155,6 +166,7 @@ export const getOrgById = async (orgId: number) => {
       uniqueName: true,
       name: true,
       image: true,
+      link: true,
     },
     where: (organizations, { eq }) => eq(organizations.id, orgId),
   });
@@ -193,7 +205,7 @@ export const createOrganization = async (
         organizationName: organization[0].name,
         organizationImage: organization[0].image,
         roleName: role[0].name as string,
-      } as ExtendedUser["orgRoles"][0],
+      },
     };
   } else {
     return {
@@ -209,9 +221,10 @@ export const getUserOrganizationRoles = async (userId: string) => {
     .select({
       organizationId: organizations.id,
       organizationUniqueName: organizations.uniqueName,
-      organizationImage: organizations.image,
       organizationName: organizations.name,
       roleName: roles.name,
+      organizationImage: organizations.image,
+      organizationLink: organizations.link,
     })
     .from(userOrganizationRoles)
     .innerJoin(

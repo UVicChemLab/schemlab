@@ -33,6 +33,7 @@ import { OrganizationSchema } from "~/lib/formSchemas";
 import { createOrganizationAction } from "~/actions/organization";
 import { useProfile } from "~/components/profile-provider";
 import { observe } from "@legendapp/state";
+import { Role } from "~/server/db/schema";
 
 const AddOrganizationDialog = () => {
   const organizationForm = useForm<z.infer<typeof OrganizationSchema>>({
@@ -41,10 +42,12 @@ const AddOrganizationDialog = () => {
       uniqueName: "",
       name: "",
       description: "",
+      image: "",
+      link: "",
     },
   });
 
-  const { user } = useProfile();
+  const user$ = useProfile();
 
   const { toast } = useToast();
 
@@ -56,15 +59,21 @@ const AddOrganizationDialog = () => {
           description: new Date().toISOString(),
         });
         if (res.organization) {
-          observe(() => {
-            user.orgRoles.set([...user.orgRoles.get(), res.organization]);
+          observe(() =>
+            user$.orgRoles.set((prev) => [
+              ...prev,
+              {
+                organizationUniqueName: res.organization.organizationUniqueName,
+                roleName: res.organization.roleName as Role,
+              },
+            ]),
+          );
+        } else {
+          toast({
+            title: "Something went wrong",
+            description: res?.message + " " + new Date().toISOString(),
           });
         }
-      } else {
-        toast({
-          title: "Something went wrong",
-          description: res?.message + " " + new Date().toISOString(),
-        });
       }
     });
     organizationForm.reset();

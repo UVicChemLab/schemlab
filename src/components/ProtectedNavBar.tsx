@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useTransition } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,20 +22,17 @@ import {
 } from "~/components/ui/select";
 import { UserButton } from "./auth/user-button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCurrentUser } from "~/hooks/use-current-user";
 import Image from "next/image";
 import { Merriweather } from "next/font/google";
 import { appName, cn } from "~/lib/utils";
 import { useProfile } from "~/components/profile-provider";
-import { Memo, observer } from "@legendapp/state/react";
-import { type Organization } from "~/components/profile-provider";
-import { type ExtendedUser } from "~/server/auth/config";
-import { Role } from "~/server/db/schema";
-import { useRouter } from "next/navigation";
+import { Memo } from "@legendapp/state/react";
+import { type ExtendedUser } from "~/lib/types";
+import { useRouter, usePathname } from "next/navigation";
 import { capitalize } from "~/lib/utils";
 import { getCurrentUser } from "~/actions/profile";
-import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 
 const font = Merriweather({
   subsets: ["latin"],
@@ -49,29 +46,28 @@ const findOrgRole = (org: string, user: ExtendedUser) => {
   return orgRole;
 };
 
-const selectOrg = (
-  selectedOrg: string,
-  user: ExtendedUser,
-  setRole: (role: Role, organization: Organization) => void,
-) => {
-  const orgRole = findOrgRole(selectedOrg, user);
-  if (orgRole) {
-    const organization = {
-      id: orgRole.organizationId,
-      uniqueName: orgRole.organizationUniqueName,
-      name: orgRole.organizationName,
-      image: orgRole.organizationImage,
-    } as Organization;
-
-    if (orgRole.roleName) setRole(orgRole.roleName as Role, organization);
-    else console.error("Invalid roleName:", orgRole.roleName);
-  }
-};
-
 const ProtectedNavBar = function () {
   const pathname = usePathname();
-  const { user, role, organization, setRole } = useProfile();
   const router = useRouter();
+  const user$ = useProfile();
+  const { update } = useSession();
+  const [isPending, startTransition] = useTransition();
+
+  const selectOrg = (selectedOrg: string) => {
+    const orgRole = findOrgRole(selectedOrg, user$.get());
+    if (orgRole) {
+      user$.currentOrgRole.set(orgRole);
+      startTransition(() => {
+        update({
+          user: user$.get(),
+        }).then(() => {
+          router.push(
+            `/${user$.currentOrgRole.organizationUniqueName.get()}/${pathname.split("/").slice(2).join("/")}`,
+          );
+        });
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -79,17 +75,13 @@ const ProtectedNavBar = function () {
       if (!userData) {
         router.refresh();
       } else {
-        user.set(userData);
-        const orgRole = findOrgRole(organization.uniqueName.get(), user.get());
-        if (orgRole && orgRole.roleName) {
-          setRole(orgRole.roleName as Role, organization.get());
-        }
+        user$.set(userData);
       }
     };
     fetchUser();
-  }, [router, user]);
+  }, []);
 
-  if (!user) return null;
+  if (!user$.get()) return null;
 
   return (
     <header className="sticky top-0 w-full border-b">
@@ -99,13 +91,19 @@ const ProtectedNavBar = function () {
             {() => (
               <>
                 <Image
-                  src={organization.image.get() || "/compound.png"}
+                  src={
+                    user$.currentOrgRole.organizationImage.get() ||
+                    "/compound.png"
+                  }
                   width={50}
                   height={50}
                   alt="Compound"
                 />
-                <h1 className={cn("text-3xl font-semibold", font.className)}>
-                  {organization.name.get()}
+                <h1
+                  className={cn("text-3xl font-semibold", font.className)}
+                  suppressHydrationWarning
+                >
+                  {user$.currentOrgRole.organizationName.get()}
                 </h1>
               </>
             )}
@@ -114,16 +112,16 @@ const ProtectedNavBar = function () {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/schemlab" legacyBehavior passHref>
+              <Link href={`${DEFAULT_LOGIN_REDIRECT}`} legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   <Memo>
                     {() => (
                       <div
                         className={
-                          pathname ===
-                          `/schemlab/${organization.uniqueName.get()}/home`
+                          usePathname() ===
+                          `/${user$.currentOrgRole.organizationUniqueName.get()}/home`
                             ? "underline"
-                            : ""
+                            : "border-l"
                         }
                       >
                         Home
@@ -136,18 +134,19 @@ const ProtectedNavBar = function () {
             <NavigationMenuItem>
               <Memo>
                 {() => (
-                  <Link
-                    href={`/schemlab/${role.get()}`}
-                    legacyBehavior
-                    passHref
-                  >
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                      suppressHydrationWarning
+                  <div suppressHydrationWarning>
+                    <Link
+                      href={`/${user$.currentOrgRole.roleName.get()}`}
+                      legacyBehavior
+                      passHref
                     >
-                      {capitalize(role.get())}
-                    </NavigationMenuLink>
-                  </Link>
+                      <NavigationMenuLink
+                        className={navigationMenuTriggerStyle()}
+                      >
+                        {capitalize(user$.currentOrgRole.roleName.get())}
+                      </NavigationMenuLink>
+                    </Link>
+                  </div>
                 )}
               </Memo>
             </NavigationMenuItem>
@@ -157,29 +156,26 @@ const ProtectedNavBar = function () {
           <Memo>
             {() => (
               <Select
-                defaultValue={organization.uniqueName.get()}
-                onValueChange={(value) => selectOrg(value, user.get(), setRole)}
+                defaultValue={user$.currentOrgRole.organizationUniqueName.get()}
+                onValueChange={(value) => selectOrg(value)}
+                value={user$.currentOrgRole.organizationUniqueName.get()}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select an organization">
-                    {organization.uniqueName.get()}
+                    {user$.currentOrgRole.organizationUniqueName.get()}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Organizations</SelectLabel>
-                    {user &&
-                      user.orgRoles.get() &&
-                      user.orgRoles.map((orgRole) => (
-                        <SelectItem
-                          key={`org-${orgRole.organizationUniqueName.get()}`}
-                          value={
-                            orgRole.organizationUniqueName.get() || appName
-                          }
-                        >
-                          {orgRole.organizationUniqueName.get()}
-                        </SelectItem>
-                      ))}
+                    {user$.orgRoles.map((orgRole, index) => (
+                      <SelectItem
+                        key={`org-${index}-${orgRole.organizationUniqueName.get()}`}
+                        value={orgRole.organizationUniqueName.get() || appName}
+                      >
+                        {orgRole.organizationUniqueName.get()}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -192,4 +188,4 @@ const ProtectedNavBar = function () {
   );
 };
 
-export default observer(ProtectedNavBar);
+export default ProtectedNavBar;

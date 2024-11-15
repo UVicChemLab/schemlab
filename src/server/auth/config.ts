@@ -26,8 +26,7 @@ import bcrypt from "bcryptjs";
 import { DefaultJWT } from "next-auth/jwt";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import { create } from "domain";
-import { get } from "http";
+import { type ExtendedUser, type OrgRole, defaultOrgRole } from "~/lib/types";
 
 const providers: Provider[] = [
   Resend,
@@ -100,6 +99,7 @@ export const authConfig = {
       session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
       session.user.isOAuth = token.isOAuth;
       session.user.orgRoles = token.orgRoles;
+      session.user.currentOrgRole = token.currentOrgRole;
       return session;
     },
     async jwt({ token, trigger, session, account, user }) {
@@ -109,6 +109,7 @@ export const authConfig = {
         token.isTwoFactorEnabled = session.user.isTwoFactorEnabled;
         token.isOAuth = session.user.isOAuth;
         token.orgRoles = session.user.orgRoles;
+        token.currentOrgRole = session.user.currentOrgRole;
       } else if (user?.id) {
         token.id = user.id;
         if (account?.provider === "credentials") {
@@ -118,33 +119,18 @@ export const authConfig = {
         }
         if (trigger === "signUp") {
           token.isTwoFactorEnabled = false;
-          const defaultOrgRole = await createUserOrganizationRole(user.id);
-          if (
-            !defaultOrgRole ||
-            defaultOrgRole.length === 0 ||
-            !defaultOrgRole[0]
-          )
-            return token;
-          const defautlRole = await getRoleById(defaultOrgRole[0].roleId);
-          const defaultOrg = await getOrgById(defaultOrgRole[0].organizationId);
-          if (defautlRole && defaultOrg) {
-            token.orgRoles = [
-              {
-                organizationId: defaultOrg.id,
-                organizationUniqueName: defaultOrg.uniqueName,
-                organizationImage: defaultOrg.image,
-                organizationName: defaultOrg.name,
-                roleName: defautlRole.name,
-              },
-            ];
-          }
+          await createUserOrganizationRole(user.id);
+          token.orgRoles = [defaultOrgRole];
         } else if (trigger === "signIn") {
           const existingUser = await getUserById(user.id);
           if (existingUser)
             token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
           else token.isTwoFactorEnabled = false;
-          const orgRoles = await getUserOrganizationRoles(user.id);
-          if (orgRoles) token.orgRoles = orgRoles;
+          const orgRoles: OrgRole[] = await getUserOrganizationRoles(user.id);
+          if (orgRoles) {
+            token.orgRoles = orgRoles;
+            token.currentOrgRole = orgRoles[0] || defaultOrgRole;
+          }
         }
       }
       return token;
@@ -170,25 +156,8 @@ declare module "next-auth/jwt" {
     id: string;
     isTwoFactorEnabled: boolean;
     isOAuth: boolean;
-    orgRoles: {
-      organizationId: number;
-      organizationUniqueName: string;
-      organizationImage: string | null;
-      organizationName: string;
-      roleName: string;
-    }[];
+    orgRoles: OrgRole[];
+    currentRole: string;
+    currentOrgRole: OrgRole;
   }
 }
-
-export type ExtendedUser = {
-  id: string;
-  isOAuth: boolean;
-  isTwoFactorEnabled: boolean;
-  orgRoles: {
-    organizationId: number;
-    organizationUniqueName: string;
-    organizationImage: string | null;
-    organizationName: string;
-    roleName: string;
-  }[];
-} & DefaultSession["user"];

@@ -11,11 +11,11 @@ import {
 import { generateVerificationToken } from "~/lib/tokens";
 import { sendVerificationEmail } from "~/lib/mail";
 import { auth } from "~/server/auth";
-import { ExtendedUser } from "~/server/auth/config";
+import { ExtendedUser } from "~/lib/types";
 
 export const getCurrentUser = async () => {
   const session = await auth();
-  if (!session || !session.user.id) return null;
+  if (!session || !session.user) return null;
   return session.user as ExtendedUser;
 };
 

@@ -48,25 +48,23 @@ import { Memo } from "@legendapp/state/react";
 import { useProfile } from "~/components/profile-provider";
 import { Badge } from "~/components/ui/badge";
 import { observable } from "@legendapp/state";
-import { observer } from "@legendapp/state/react";
 import { cn } from "~/lib/utils";
-import { Organization } from "~/components/profile-provider";
 import { getAllOrganizations } from "~/server/db/calls/auth";
 import { Check, ChevronsUpDown } from "lucide-react";
 import AddOrganizationDialog from "~/components/AddOrganizationDialog";
+import { type Organization } from "~/lib/types";
 
 const ProfilePage = () => {
   const [isPending, startTransition] = useTransition();
   const error$ = observable<string | undefined>();
   const success$ = observable<string | undefined>();
+  const { update } = useSession();
+  const user$ = useProfile();
   const organizations$ = observable<Organization[]>([]);
-  const { update, data } = useSession();
-
-  const { user } = useProfile();
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      const orgData = await getAllOrganizations();
+      const orgData: Organization[] = await getAllOrganizations();
       if (orgData) {
         organizations$.set(orgData);
       }
@@ -78,11 +76,11 @@ const ProfilePage = () => {
   const form = useForm<z.infer<typeof ProfileSchema>>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
-      name: user.name.get() || "",
-      email: user.email.get() || "",
+      name: user$.name.get() || "",
+      email: user$.email.get() || "",
       password: "",
       newPassword: "",
-      isTwoFactorEnabled: user.isTwoFactorEnabled.get() || false,
+      isTwoFactorEnabled: user$.isTwoFactorEnabled.get() || false,
     },
   });
 
@@ -132,7 +130,7 @@ const ProfilePage = () => {
               />
 
               {/***********Provider Only******** */}
-              {user.isOAuth.get() && (
+              {user$.isOAuth.get() && (
                 <FormField
                   control={form.control}
                   name="email"
@@ -144,7 +142,7 @@ const ProfilePage = () => {
                           placeholder="john.doe@example.com"
                           type="email"
                           disabled={true}
-                          value={user.email.get() || ""}
+                          value={user$.email.get() || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -155,7 +153,7 @@ const ProfilePage = () => {
 
               {/******Credentials Only******** */}
               {/**User Email */}
-              {user.isOAuth.get() === false && (
+              {user$.isOAuth.get() === false && (
                 <>
                   <FormField
                     control={form.control}
@@ -344,20 +342,16 @@ const ProfilePage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Organization</TableHead>
-              <TableHead>Organization Full Name</TableHead>
               <TableHead>Role</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <Memo>
               {() =>
-                user.orgRoles.get()?.map((orgRole) => (
-                  <TableRow key={orgRole.organizationId}>
+                user$.orgRoles.get()?.map((orgRole) => (
+                  <TableRow key={orgRole.organizationUniqueName}>
                     <TableCell className="font-medium">
                       {orgRole.organizationUniqueName}
-                    </TableCell>
-                    <TableCell suppressHydrationWarning>
-                      {orgRole.organizationName}
                     </TableCell>
                     <TableCell className="text-right">
                       <Badge variant={"default"} suppressHydrationWarning>
