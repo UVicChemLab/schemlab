@@ -7,6 +7,7 @@ import {
   getUserByEmail,
   getUserById,
   updateUser,
+  createUserOrganizationRole,
 } from "~/server/db/calls/auth";
 import { generateVerificationToken } from "~/lib/tokens";
 import { sendVerificationEmail } from "~/lib/mail";
@@ -37,6 +38,18 @@ export const profile = async (values: z.infer<typeof ProfileSchema>) => {
       values.password = undefined;
       values.newPassword = undefined;
       values.isTwoFactorEnabled = undefined;
+    }
+
+    if (values.organization) {
+      if (
+        user.orgRoles.some(
+          (orgRole) => orgRole.organizationUniqueName === values.organization,
+        )
+      ) {
+        return { error: "You are already a member of this organization!" };
+      } else {
+        await createUserOrganizationRole(user.id, values.organization);
+      }
     }
 
     if (values.email && values.email !== user.email) {

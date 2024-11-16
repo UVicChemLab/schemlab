@@ -1,16 +1,16 @@
 "use server";
 
 import { db } from "~/server/db";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, desc } from "drizzle-orm";
 import {
   users,
   accounts,
   roles,
   organizations,
   userOrganizationRoles,
+  Organization,
 } from "~/server/db/schema";
-import { Role } from "~/server/db/schema";
-import { appName } from "~/lib/utils";
+import { Role, appName, type OrgRole } from "~/lib/types";
 
 /*****************User*********** */
 export const getUserByEmail = async (email: string) => {
@@ -136,15 +136,27 @@ export const getRoleByName = async (name: Role) => {
 
 /*****************Organization*********** */
 export const getAllOrganizations = async () => {
-  return await db.query.organizations.findMany({
-    columns: {
-      id: true,
-      uniqueName: true,
-      name: true,
-      image: true,
-      link: true,
-    },
-  });
+  return await db.query.organizations.findMany();
+};
+export const getAllUserOrganizations = async (userId: string) => {
+  return (await db
+    .select({
+      id: organizations.id,
+      uniqueName: organizations.uniqueName,
+      name: organizations.name,
+      desc: organizations.desc,
+      image: organizations.image,
+      link: organizations.link,
+      createdBy: organizations.createdBy,
+      createdAt: organizations.createdAt,
+      updatedAt: organizations.updatedAt,
+    })
+    .from(organizations)
+    .innerJoin(
+      userOrganizationRoles,
+      eq(organizations.id, userOrganizationRoles.organizationId),
+    )
+    .where(eq(userOrganizationRoles.userId, userId))) as Organization[];
 };
 
 export const getOrgByUniqueName = async (uniqueName: string) => {
@@ -180,32 +192,66 @@ export const createOrganization = async (
   image?: string,
   link?: string,
 ) => {
-  const organization = await db
-    .insert(organizations)
-    .values({ uniqueName, name, desc, image, link, createdBy: userId })
-    .returning();
+  try {
+    const organization = await db
+      .insert(organizations)
+      .values({ uniqueName, name, desc, image, link, createdBy: userId })
+      .returning();
 
-  const role = await db
-    .insert(roles)
-    .values({ name: Role.ORGADMIN })
-    .returning();
-
-  if (organization[0] && role[0]) {
-    await db.insert(userOrganizationRoles).values({
-      userId,
-      organizationId: organization[0].id,
-      roleId: role[0].id,
+    const admins = await getAllAdmins();
+    const role = await db.query.roles.findFirst({
+      where: (roles, { eq }) => eq(roles.name, Role.ORGADMIN),
     });
+    if (organization[0] && role) {
+      await db.insert(userOrganizationRoles).values({
+        userId,
+        organizationId: organization[0].id,
+        roleId: role.id,
+      });
+
+      const userOrgs = await getAllUserOrganizations(userId);
+      const orgRoles = await getUserOrganizationRoles(userId);
+      return {
+        success: true,
+        message: `Organization ${uniqueName} Created Successfully`,
+        organizations: userOrgs as Organization[],
+        orgRoles: orgRoles as OrgRole[],
+      };
+    }
+  } catch (e) {
+    const organization = await getOrgByUniqueName(uniqueName);
+    if (organization) {
+      await deleteOrganization(organization.id);
+    }
+    return {
+      success: false,
+      message: `Organization with uniqueName ${uniqueName} already exists`,
+    };
+  }
+};
+
+export const updateOrganization = async (
+  id: number,
+  uniqueName: string,
+  name: string,
+  desc?: string,
+  image?: string,
+  link?: string,
+) => {
+  const res = await db
+    .update(organizations)
+    .set({ uniqueName, name, desc, image, link })
+    .where(eq(organizations.id, id))
+    .returning();
+
+  if (res[0]) {
+    const userOrgs = await getAllUserOrganizations(res[0].createdBy);
+    const orgRoles = await getUserOrganizationRoles(res[0].createdBy);
     return {
       success: true,
-      message: "Organization created successfully",
-      organization: {
-        organizationId: organization[0].id,
-        organizationUniqueName: organization[0].uniqueName,
-        organizationName: organization[0].name,
-        organizationImage: organization[0].image,
-        roleName: role[0].name as string,
-      },
+      message: `Organization ${uniqueName} Updated Successfully`,
+      organizations: userOrgs as Organization[],
+      orgRoles: orgRoles as OrgRole[],
     };
   } else {
     return {
@@ -215,16 +261,34 @@ export const createOrganization = async (
   }
 };
 
+export const deleteOrganization = async (id: number) => {
+  const res = await db
+    .delete(organizations)
+    .where(eq(organizations.id, id))
+    .returning();
+  if (res[0]) {
+    const userOrgs = await getAllUserOrganizations(res[0].createdBy);
+    const orgRoles = await getUserOrganizationRoles(res[0].createdBy);
+    return {
+      success: true,
+      message: `Organization ${res[0].uniqueName} deleted successfully`,
+      organizations: userOrgs as Organization[],
+      orgRoles: orgRoles as OrgRole[],
+    };
+  } else {
+    return {
+      success: false,
+      message: `Organization with id: ${id} not found`,
+    };
+  }
+};
+
 /******************UserOrganizationRole*********** */
 export const getUserOrganizationRoles = async (userId: string) => {
   return await db
     .select({
-      organizationId: organizations.id,
       organizationUniqueName: organizations.uniqueName,
-      organizationName: organizations.name,
       roleName: roles.name,
-      organizationImage: organizations.image,
-      organizationLink: organizations.link,
     })
     .from(userOrganizationRoles)
     .innerJoin(
@@ -278,4 +342,12 @@ export const createUserOrganizationRole = async (
       ];
     }
   }
+};
+
+const getAllAdmins = async () => {
+  return await db
+    .select({ userId: userOrganizationRoles.userId, roleId: roles.id })
+    .from(userOrganizationRoles)
+    .innerJoin(roles, eq(roles.id, userOrganizationRoles.roleId))
+    .where(eq(roles.name, Role.ADMIN));
 };

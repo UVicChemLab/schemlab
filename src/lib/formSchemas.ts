@@ -1,7 +1,5 @@
 import * as z from "zod";
-import { Role } from "~/server/db/schema";
-import { appName } from "./utils";
-import { desc } from "drizzle-orm";
+import { appName, Role } from "~/lib/types";
 
 export const LoginSchema = z.object({
   email: z.string().email({

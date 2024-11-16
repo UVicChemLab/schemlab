@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { type ExtendedUser } from "~/server/auth/config";
 import { useProfile } from "~/components/profile-provider";
 import { Memo } from "@legendapp/state/react";
+import { type ExtendedUser } from "~/lib/types";
 
 interface UserInfoProps {
   user?: ExtendedUser;
@@ -10,7 +10,7 @@ interface UserInfoProps {
 }
 
 const UserInfo = ({ user, label }: UserInfoProps) => {
-  const { role } = useProfile();
+  const user$ = useProfile();
   return (
     <Card className="w-[600px] shadow-md">
       <CardHeader>
@@ -41,7 +41,7 @@ const UserInfo = ({ user, label }: UserInfoProps) => {
         <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
           <p className="text-sm font-medium">Role</p>
           <p className="max-w-[180px] truncate rounded-md bg-slate-100 p-1 font-mono text-xs">
-            <Memo>{role}</Memo>
+            <Memo>{() => user$.currentOrgRole.roleName.get()}</Memo>
           </p>
         </div>
 

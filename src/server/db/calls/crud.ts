@@ -3,7 +3,7 @@
 import { db } from "~/server/db";
 import { questions, levels, types, sets, answers } from "~/server/db/schema";
 import { between, max, min, sql, avg, count, eq } from "drizzle-orm";
-import { Role, Visibility } from "~/server/db/schema";
+import { Visibility } from "~/lib/types";
 
 export const getSets = async () => {
   return await db.select({ name: sets.name }).from(sets);

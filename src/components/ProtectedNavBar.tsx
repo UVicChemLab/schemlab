@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useTransition } from "react";
+import React, { useTransition } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,14 +24,18 @@ import { UserButton } from "./auth/user-button";
 import Link from "next/link";
 import Image from "next/image";
 import { Merriweather } from "next/font/google";
-import { appName, cn } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { useProfile } from "~/components/profile-provider";
-import { Memo } from "@legendapp/state/react";
 import { type ExtendedUser } from "~/lib/types";
 import { useRouter, usePathname } from "next/navigation";
 import { capitalize } from "~/lib/utils";
 import { getCurrentUser } from "~/actions/profile";
 import { useSession } from "next-auth/react";
+import { appName } from "~/lib/types";
+import { Organization } from "~/server/db/schema";
+import { getAllUserOrganizations } from "~/server/db/calls/auth";
+import { Memo, observer, useEffectOnce } from "@legendapp/state/react";
+import { observable } from "@legendapp/state";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 
 const font = Merriweather({
@@ -50,6 +54,7 @@ const ProtectedNavBar = function () {
   const pathname = usePathname();
   const router = useRouter();
   const user$ = useProfile();
+  const userOrgs$ = observable<Organization[]>([]);
   const { update } = useSession();
   const [isPending, startTransition] = useTransition();
 
@@ -60,22 +65,22 @@ const ProtectedNavBar = function () {
       startTransition(() => {
         update({
           user: user$.get(),
-        }).then(() => {
-          router.push(
-            `/${user$.currentOrgRole.organizationUniqueName.get()}/${pathname.split("/").slice(2).join("/")}`,
-          );
-        });
+        }).then(() => {});
       });
     }
   };
 
-  useEffect(() => {
+  useEffectOnce(() => {
     const fetchUser = async () => {
       const userData = await getCurrentUser();
       if (!userData) {
         router.refresh();
       } else {
         user$.set(userData);
+        const userOrgsData = await getAllUserOrganizations(userData.id);
+        if (userOrgsData) {
+          userOrgs$.set(userOrgsData);
+        }
       }
     };
     fetchUser();
@@ -92,18 +97,26 @@ const ProtectedNavBar = function () {
               <>
                 <Image
                   src={
-                    user$.currentOrgRole.organizationImage.get() ||
-                    "/compound.png"
+                    userOrgs$
+                      .find(
+                        (org) =>
+                          org.uniqueName.get() ===
+                          user$.currentOrgRole.organizationUniqueName.get(),
+                      )
+                      ?.image.get() || "/compound.png"
                   }
                   width={50}
                   height={50}
                   alt="Compound"
                 />
-                <h1
-                  className={cn("text-3xl font-semibold", font.className)}
-                  suppressHydrationWarning
-                >
-                  {user$.currentOrgRole.organizationName.get()}
+                <h1 className={cn("text-3xl font-semibold", font.className)}>
+                  {userOrgs$
+                    .find(
+                      (org) =>
+                        org.uniqueName.get() ===
+                        user$.currentOrgRole.organizationUniqueName.get(),
+                    )
+                    ?.name.get()}
                 </h1>
               </>
             )}
@@ -112,43 +125,34 @@ const ProtectedNavBar = function () {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href={`${DEFAULT_LOGIN_REDIRECT}`} legacyBehavior passHref>
+              <Link
+                href={`${DEFAULT_LOGIN_REDIRECT}/home`}
+                legacyBehavior
+                passHref
+              >
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <Memo>
-                    {() => (
-                      <div
-                        className={
-                          usePathname() ===
-                          `/${user$.currentOrgRole.organizationUniqueName.get()}/home`
-                            ? "underline"
-                            : "border-l"
-                        }
-                      >
-                        Home
-                      </div>
-                    )}
-                  </Memo>
+                  <div
+                    className={
+                      pathname === `${DEFAULT_LOGIN_REDIRECT}/home`
+                        ? "underline"
+                        : "border-l"
+                    }
+                  >
+                    Home
+                  </div>
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Memo>
-                {() => (
-                  <div suppressHydrationWarning>
-                    <Link
-                      href={`/${user$.currentOrgRole.roleName.get()}`}
-                      legacyBehavior
-                      passHref
-                    >
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        {capitalize(user$.currentOrgRole.roleName.get())}
-                      </NavigationMenuLink>
-                    </Link>
-                  </div>
-                )}
-              </Memo>
+              <Link
+                href={`${DEFAULT_LOGIN_REDIRECT}/manage`}
+                legacyBehavior
+                passHref
+              >
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  {capitalize(user$.currentOrgRole.roleName.get())}
+                </NavigationMenuLink>
+              </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -188,4 +192,4 @@ const ProtectedNavBar = function () {
   );
 };
 
-export default ProtectedNavBar;
+export default observer(ProtectedNavBar);

@@ -36,11 +36,11 @@ import { register } from "~/actions/register";
 import { Memo, observer } from "@legendapp/state/react";
 import { observable, observe } from "@legendapp/state";
 import { getAllOrganizations, getAllRoles } from "~/server/db/calls/auth";
-import { Organization } from "~/components/profile-provider";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { appName, cn, capitalize } from "~/lib/utils";
+import { cn, capitalize } from "~/lib/utils";
 import { type RoleCallReturn } from "~/server/db/calls/auth";
-import { Role } from "~/server/db/schema";
+import { type Organization } from "~/server/db/schema";
+import { Role, appName } from "~/lib/types";
 
 const RegisterForm = () => {
   const [success, setSuccess] = useState<string | undefined>();

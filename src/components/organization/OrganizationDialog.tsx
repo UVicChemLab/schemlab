@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from "./ui/dialog";
+} from "../ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,61 +19,65 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { Plus } from "lucide-react";
+} from "../ui/form";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import { capitalize } from "~/lib/utils";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "../hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
 import { OrganizationSchema } from "~/lib/formSchemas";
-import { createOrganizationAction } from "~/actions/organization";
-import { useProfile } from "~/components/profile-provider";
-import { observe } from "@legendapp/state";
-import { Role } from "~/server/db/schema";
+import {
+  createOrganizationAction,
+  updateOrganizationAction,
+} from "~/actions/organization";
+import { type Organization } from "~/server/db/schema";
+import { OrgRole } from "~/lib/types";
 
-const AddOrganizationDialog = () => {
+const OrganizationDialog = ({
+  children,
+  action,
+  org,
+  updateState,
+}: {
+  children: React.ReactNode;
+  action: "create" | "update";
+  org?: Organization;
+  updateState: (orgRoles: OrgRole[], userOrgs: Organization[]) => void;
+}) => {
   const organizationForm = useForm<z.infer<typeof OrganizationSchema>>({
     resolver: zodResolver(OrganizationSchema),
     defaultValues: {
-      uniqueName: "",
-      name: "",
-      description: "",
-      image: "",
-      link: "",
+      uniqueName: org?.uniqueName ?? "",
+      name: org?.name ?? "",
+      description: org?.desc ?? "",
+      image: org?.image ?? "",
+      link: org?.link ?? "",
     },
   });
-
-  const user$ = useProfile();
 
   const { toast } = useToast();
 
   function onSubmit(values: z.infer<typeof OrganizationSchema>) {
-    createOrganizationAction(values).then((res) => {
+    const orgAction =
+      action === "create" ? createOrganizationAction : updateOrganizationAction;
+    orgAction(values).then((res) => {
       if (res?.success) {
         toast({
-          title: "Organization Saved Successfully",
+          title: res.message,
           description: new Date().toISOString(),
         });
-        if (res.organization) {
-          observe(() =>
-            user$.orgRoles.set((prev) => [
-              ...prev,
-              {
-                organizationUniqueName: res.organization.organizationUniqueName,
-                roleName: res.organization.roleName as Role,
-              },
-            ]),
-          );
-        } else {
-          toast({
-            title: "Something went wrong",
-            description: res?.message + " " + new Date().toISOString(),
-          });
-        }
+        updateState(
+          res.orgRoles as OrgRole[],
+          res.organizations as Organization[],
+        );
+      } else {
+        toast({
+          title: "Something went wrong",
+          description: res?.message + " " + new Date().toISOString(),
+        });
       }
     });
     organizationForm.reset();
@@ -81,16 +85,12 @@ const AddOrganizationDialog = () => {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button className="w-max">
-          <Plus />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="">
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Organization</DialogTitle>
+          <DialogTitle>{capitalize(action)} Organization</DialogTitle>
           <DialogDescription>
-            Create a new organization. Click save when you're done.
+            Please Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <Form {...organizationForm}>
@@ -181,4 +181,4 @@ const AddOrganizationDialog = () => {
   );
 };
 
-export default AddOrganizationDialog;
+export default OrganizationDialog;

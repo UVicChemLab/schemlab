@@ -16,19 +16,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-
-export enum Role {
-  ADMIN = "admin",
-  ORGADMIN = "orgAdmin",
-  INSTRUCTOR = "instructor",
-  STUDENT = "student",
-}
-
-export enum Visibility {
-  PUBLIC = "public",
-  ORGANIZATION = "organization",
-  PRIVATE = "private",
-}
+import { Role, Visibility } from "~/lib/types";
 
 export const roleEnum = pgEnum("name", [
   Role.ADMIN,
@@ -165,6 +153,8 @@ export const organizations = pgTable("organization", {
   ),
 });
 
+export type Organization = typeof organizations.$inferInsert;
+
 export const roles = pgTable("role", {
   id: serial("role_id").primaryKey(),
   name: roleEnum().notNull(),
@@ -199,6 +189,7 @@ export const userOrganizationRoles = pgTable(
   (userOrganizationRole) => [
     primaryKey({
       columns: [
+        userOrganizationRole.userId,
         userOrganizationRole.organizationId,
         userOrganizationRole.roleId,
       ],

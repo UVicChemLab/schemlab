@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useEffect } from "react";
+import { useTransition } from "react";
 import { useSession } from "next-auth/react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -44,15 +44,14 @@ import {
 import { Input } from "~/components/ui/input";
 import { FormError } from "~/components/ui/form-error";
 import { FormSucess } from "~/components/ui/form-success";
-import { Memo } from "@legendapp/state/react";
+import { Memo, useEffectOnce, observer } from "@legendapp/state/react";
 import { useProfile } from "~/components/profile-provider";
 import { Badge } from "~/components/ui/badge";
 import { observable } from "@legendapp/state";
 import { cn } from "~/lib/utils";
 import { getAllOrganizations } from "~/server/db/calls/auth";
 import { Check, ChevronsUpDown } from "lucide-react";
-import AddOrganizationDialog from "~/components/AddOrganizationDialog";
-import { type Organization } from "~/lib/types";
+import { type Organization } from "~/server/db/schema";
 
 const ProfilePage = () => {
   const [isPending, startTransition] = useTransition();
@@ -62,11 +61,11 @@ const ProfilePage = () => {
   const user$ = useProfile();
   const organizations$ = observable<Organization[]>([]);
 
-  useEffect(() => {
+  useEffectOnce(() => {
     const fetchOrganizations = async () => {
-      const orgData: Organization[] = await getAllOrganizations();
-      if (orgData) {
-        organizations$.set(orgData);
+      const orgsData: Organization[] = await getAllOrganizations();
+      if (orgsData) {
+        organizations$.set(orgsData);
       }
     };
 
@@ -240,93 +239,92 @@ const ProfilePage = () => {
                 </>
               )}
 
-              {/*Join Organization Or Create Your Own*/}
-              <FormField
-                control={form.control}
-                name="organization"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="my-2">
-                      Join an Organization or Create Your Own
-                    </FormLabel>
-                    <div className="flex w-full flex-row items-center justify-between space-x-6">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <Memo>
-                                {() =>
-                                  field.value
-                                    ? organizations$
+              {/*Join Organization*/}
+              <Memo>
+                {() => (
+                  <FormField
+                    control={form.control}
+                    name="organization"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="my-2">
+                          Join an Organization or Create Your Own
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                {field.value
+                                  ? organizations$
+                                      .get()
+                                      .find(
+                                        (organization) =>
+                                          organization.uniqueName ===
+                                          field.value,
+                                      )?.uniqueName
+                                  : "Select Organization"}
+                                <ChevronsUpDown className="opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0">
+                            <Command>
+                              <CommandInput
+                                placeholder="Search organization..."
+                                className="h-9"
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  No Organization found.
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  <Memo>
+                                    {() =>
+                                      organizations$
                                         .get()
-                                        .find(
-                                          (organization) =>
-                                            organization.uniqueName ===
-                                            field.value,
-                                        )?.uniqueName
-                                    : "Select Organization"
-                                }
-                              </Memo>
-                              <ChevronsUpDown className="opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder="Search organization..."
-                              className="h-9"
-                            />
-                            <CommandList>
-                              <CommandEmpty>
-                                No Organization found.
-                              </CommandEmpty>
-                              <CommandGroup>
-                                <Memo>
-                                  {() =>
-                                    organizations$.get().map((organization) => (
-                                      <CommandItem
-                                        value={organization.uniqueName}
-                                        key={organization.id}
-                                        onSelect={() => {
-                                          form.setValue(
-                                            "organization",
-                                            organization.uniqueName,
-                                          );
-                                        }}
-                                      >
-                                        {organization.uniqueName}
-                                        <Check
-                                          className={cn(
-                                            "ml-auto",
-                                            organization.uniqueName ===
-                                              field.value
-                                              ? "opacity-100"
-                                              : "opacity-0",
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))
-                                  }
-                                </Memo>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <AddOrganizationDialog />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
+                                        .map((organization) => (
+                                          <CommandItem
+                                            value={organization.uniqueName}
+                                            key={organization.id}
+                                            onSelect={() => {
+                                              form.setValue(
+                                                "organization",
+                                                organization.uniqueName,
+                                              );
+                                            }}
+                                          >
+                                            {organization.uniqueName}
+                                            <Check
+                                              className={cn(
+                                                "ml-auto",
+                                                organization.uniqueName ===
+                                                  field.value
+                                                  ? "opacity-100"
+                                                  : "opacity-0",
+                                              )}
+                                            />
+                                          </CommandItem>
+                                        ))
+                                    }
+                                  </Memo>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+              </Memo>
             </div>
             <FormError message={error$.get()} />
             <FormSucess message={success$.get()} />
@@ -354,9 +352,7 @@ const ProfilePage = () => {
                       {orgRole.organizationUniqueName}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge variant={"default"} suppressHydrationWarning>
-                        {orgRole.roleName}
-                      </Badge>
+                      <Badge variant={"default"}>{orgRole.roleName}</Badge>
                     </TableCell>
                   </TableRow>
                 ))
@@ -369,4 +365,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default observer(ProfilePage);

@@ -66,7 +66,10 @@ const LoginForm = () => {
         })
         .catch((e) => {
           setError(() => e.message);
-          console.error("Comming from here", e.message, e.type);
+          if (e.message === "NEXT_REDIRECT") {
+            setSuccess(() => "Redirecting...");
+            setError(() => "");
+          }
         });
     });
   };

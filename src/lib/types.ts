@@ -1,6 +1,20 @@
 import { DefaultSession } from "next-auth";
-import { appName } from "~/lib/utils";
-import { Role } from "~/server/db/schema";
+import { type Organization } from "~/server/db/schema";
+
+export const appName = "SChemLab";
+
+export enum Role {
+  ADMIN = "admin",
+  ORGADMIN = "orgAdmin",
+  INSTRUCTOR = "instructor",
+  STUDENT = "student",
+}
+
+export enum Visibility {
+  PUBLIC = "public",
+  ORGANIZATION = "organization",
+  PRIVATE = "private",
+}
 
 export type ExtendedUser = {
   id: string;
@@ -11,19 +25,30 @@ export type ExtendedUser = {
 } & DefaultSession["user"];
 
 export type OrgRole = {
-  organizationId: number;
   organizationUniqueName: string;
-  organizationName: string;
   roleName: Role;
-  organizationImage: string | null;
-  organizationLink: string | null;
 };
 
 export const defaultOrgRole = {
-  organizationId: 4,
   organizationUniqueName: appName,
-  organizationName: appName,
-  organizationImage: "/compound.png",
-  organizationLink: null,
   roleName: Role.STUDENT,
 } as OrgRole;
+
+export type RolesWithPermissions = {
+  [R in Role]: Partial<{
+    [Key in keyof Permissions]: Partial<{
+      [Action in Permissions[Key]["action"]]: PermissionCheck<Key>;
+    }>;
+  }>;
+};
+
+export type Permissions = {
+  organizations: {
+    dataType: Organization;
+    action: "view" | "create" | "update" | "delete" | "join";
+  };
+};
+
+type PermissionCheck<Key extends keyof Permissions> =
+  | boolean
+  | ((user: ExtendedUser, data: Permissions[Key]["dataType"]) => boolean);

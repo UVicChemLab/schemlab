@@ -20,7 +20,7 @@ const font = Merriweather({
   subsets: ["latin"],
   weight: ["400"],
 });
-import { appName } from "~/lib/utils";
+import { appName } from "~/lib/types";
 
 const NavBar = () => {
   const pathname = usePathname();

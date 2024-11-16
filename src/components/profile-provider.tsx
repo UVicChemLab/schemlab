@@ -2,8 +2,6 @@
 
 import { createContext, useContext } from "react";
 import { observable } from "@legendapp/state";
-import { syncObservable } from "@legendapp/state/sync";
-import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 import { type ExtendedUser, defaultOrgRole } from "~/lib/types";
 
 const profileState$ = observable({
@@ -16,13 +14,6 @@ const profileState$ = observable({
   orgRoles: [defaultOrgRole],
   currentOrgRole: defaultOrgRole,
 } as ExtendedUser);
-
-syncObservable(profileState$, {
-  persist: {
-    name: "UserProfile",
-    plugin: ObservablePersistLocalStorage,
-  },
-});
 
 const ProfileContext = createContext(profileState$);
 

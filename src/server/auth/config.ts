@@ -11,11 +11,8 @@ import { LoginSchema } from "~/lib/formSchemas";
 import {
   getUserByEmail,
   getUserById,
-  getAccountByUserId,
   setOAuthEmailVerified,
   getUserOrganizationRoles,
-  getRoleById,
-  getOrgById,
   createUserOrganizationRole,
 } from "../db/calls/auth";
 import {
