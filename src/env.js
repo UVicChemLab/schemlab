@@ -14,7 +14,6 @@ export const env = createEnv({
     REACT_APP_API_PATH: z.string(),
     PUBLIC_URL: z.string(),
     UPLOADTHING_TOKEN: z.string(),
-    CLERK_SECRET_KEY: z.string(),
     AUTH_SECRET: z.string(),
     AUTH_RESEND_KEY: z.string(),
     AUTH_GITHUB_ID: z.string(),
@@ -29,7 +28,6 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
     NEXT_PUBLIC_APP_URL: z.string(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
@@ -44,9 +42,6 @@ export const env = createEnv({
     REACT_APP_API_PATH: process.env.REACT_APP_API_PATH,
     PUBLIC_URL: process.env.PUBLIC_URL,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
     AUTH_GITHUB_ID: process.env.AUTH_GITHUB_ID,
