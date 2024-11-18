@@ -10,6 +10,8 @@ import {
   getAllTypes,
   getAllLevelsForUser,
   getAllLevels,
+  getAllQuestionsForUser,
+  getAllQuestions,
 } from "~/server/db/calls/crud";
 import ManageSet from "~/components/set/ManageSet";
 import ManageType from "~/components/type/ManageType";
@@ -21,6 +23,7 @@ import {
   type Set,
   type QuestionType,
   type Level,
+  type Question,
 } from "~/server/db/schema";
 import { Role } from "~/lib/types";
 
@@ -31,16 +34,19 @@ const ManageOrgPage = async () => {
     let userSets: Set[] = [];
     let userQuestionTypes: QuestionType[] = [];
     let userLevels: Level[] = [];
+    let userQuestions: Question[] = [];
     if (user.currentOrgRole.roleName === Role.ADMIN) {
       userOrgs = await getAllOrganizations();
       userSets = await getAllSets();
       userQuestionTypes = await getAllTypes();
       userLevels = await getAllLevels();
+      userQuestions = await getAllQuestions();
     } else {
       userOrgs = await getAllUserOrganizations(user.id);
       userSets = await getAllSetsForUser(user.id);
       userQuestionTypes = await getAllTypesForUser(user.id);
       userLevels = await getAllLevelsForUser(user.id);
+      userQuestions = await getAllQuestionsForUser(user.id);
     }
     return (
       <div>
@@ -56,7 +62,7 @@ const ManageOrgPage = async () => {
           userLevels={userLevels}
           userOrgs={userOrgs}
         />
-        <ManageQuestion id={"manage-questions"} />
+        <ManageQuestion id={"manage-questions"} userQuestions={userQuestions} />
       </div>
     );
   }

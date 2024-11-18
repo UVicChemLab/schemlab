@@ -6,6 +6,7 @@ import {
   type QuestionType,
   type Level,
   type SetSelect,
+  type Question,
   organizations,
   questions,
   levels,
@@ -13,9 +14,173 @@ import {
   sets,
   answers,
 } from "~/server/db/schema";
-import { between, max, min, sql, avg, count, eq } from "drizzle-orm";
+import { between, max, min, sql, avg, count, eq, desc } from "drizzle-orm";
 import { Visibility, type QuestionTime } from "~/lib/types";
-import { create } from "domain";
+
+/***********Question******* */
+
+export const getQuestionById = async (id: number) => {
+  return (await db.query.questions.findFirst({
+    where: (questions, { eq }) => eq(questions.id, id),
+  })) as Question;
+};
+
+export const getAllQuestions = async () => {
+  return (await db.query.questions.findMany()) as Question[];
+};
+
+export const getAllQuestionsForUser = async (userId: string) => {
+  return (await db
+    .select({
+      id: questions.id,
+      number: questions.number,
+      question: questions.question,
+      answer: questions.answer,
+      levelid: questions.levelid,
+      setid: questions.setid,
+      typeid: questions.typeid,
+    })
+    .from(questions)
+    .where(eq(questions.createdBy, userId))) as Question[];
+};
+
+export const getLastQuestionInSet = async (setid: number) => {
+  return (await db.query.questions.findFirst({
+    where: (questions, { eq }) => eq(questions.setid, setid),
+    orderBy: (questions, { desc }) => desc(questions.number),
+  })) as Question;
+};
+
+export const createQuestion = async (
+  number: number,
+  question: string,
+  answer: string,
+  levelid: number,
+  setid: number,
+  typeid: number,
+  userId: string,
+  time?: QuestionTime,
+) => {
+  try {
+    const res = await db
+      .insert(questions)
+      .values({
+        number,
+        question,
+        answer,
+        levelid,
+        setid,
+        typeid,
+        createdBy: userId,
+        time,
+      })
+      .returning();
+    if (res[0]) {
+      return {
+        success: true,
+        message: `Question ${number} Created Successfully`,
+        question: res[0] as Question,
+      };
+    } else {
+      const qExist = await db.query.questions.findFirst({
+        where: (questions, { eq, and }) =>
+          and(eq(questions.setid, setid), eq(questions.number, number)),
+      });
+
+      if (qExist) {
+        return {
+          success: false,
+          message: `Question ${number} already exist`,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Error Creating Question ${number}!`,
+        };
+      }
+    }
+  } catch (error) {
+    const qExist = await db.query.questions.findFirst({
+      where: (questions, { eq, and }) =>
+        and(eq(questions.setid, setid), eq(questions.number, number)),
+    });
+
+    if (qExist) {
+      return {
+        success: false,
+        message: `Question ${number} already exist`,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Error Creating Question ${number}!`,
+      };
+    }
+  }
+};
+
+export const updateQuestion = async (
+  id: number,
+  number: number,
+  question: string,
+  answer: string,
+  levelid: number,
+  setid: number,
+  typeid: number,
+  time?: QuestionTime,
+) => {
+  try {
+    const res = await db
+      .update(questions)
+      .set({ number, question, answer, levelid, setid, typeid, time })
+      .where(eq(questions.id, id))
+      .returning();
+
+    if (res[0]) {
+      return {
+        success: true,
+        message: `Question ${number} Updated Successfully`,
+        set: res[0] as Question,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Error Updating Question ${number}!`,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Error Updating Question ${number}! ` + error,
+    };
+  }
+};
+
+export const deleteQuestion = async (id: number) => {
+  try {
+    const res = await db
+      .delete(questions)
+      .where(eq(questions.id, id))
+      .returning();
+    if (res[0]) {
+      return {
+        success: true,
+        message: `Question ${res[0].number} Deleted Successfully`,
+        set: res[0] as Question,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Question with id: ${id} not found!`,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Error Deleting Question with id: ${id}! ` + error,
+    };
+  }
+};
 
 /************Set******* */
 export const getAllSets = async () => {

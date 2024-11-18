@@ -172,6 +172,17 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
                       </Button>
                     </Link>
                   </li>
+                  <li className="w-full border-b">
+                    <Link
+                      href={`${DEFAULT_LOGIN_REDIRECT}/manage#manage-questions`}
+                      legacyBehavior
+                      passHref
+                    >
+                      <Button className="w-full" variant="ghost">
+                        Manage Questions
+                      </Button>
+                    </Link>
+                  </li>
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>

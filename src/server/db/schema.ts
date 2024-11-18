@@ -16,7 +16,7 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import type { AdapterAccount } from "next-auth/adapters";
+import type { AdapterAccountType } from "next-auth/adapters";
 import { Role, Visibility, type QuestionTime } from "~/lib/types";
 
 export const roleEnum = pgEnum("name", [
@@ -54,7 +54,7 @@ export const accounts = pgTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount>().notNull(),
+    type: text("type").$type<AdapterAccountType>().notNull(),
     provider: text("provider").notNull(),
     providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
@@ -236,7 +236,7 @@ export type Question = typeof questions.$inferInsert;
 export const sets = pgTable(
   "set",
   {
-    id: serial("set_id").notNull(),
+    id: serial("set_id").primaryKey(),
     name: varchar("set_name", { length: 50 }).notNull(),
     desc: varchar("set_desc", { length: 1024 }),
     time: json("set_time").$type<QuestionTime>().notNull().default({
@@ -258,12 +258,7 @@ export const sets = pgTable(
       () => new Date(),
     ),
   },
-  (set) => [
-    unique().on(set.name, set.organizationId),
-    primaryKey({
-      columns: [set.id],
-    }),
-  ],
+  (set) => [unique().on(set.name, set.organizationId)],
 );
 
 export type Set = typeof sets.$inferInsert;

@@ -17,33 +17,27 @@ export const createSetAction = async (
 ) => {
   const user = await getCurrentUser();
   if (user) {
-    const org = await getOrgByUniqueName(
-      user.currentOrgRole.organizationUniqueName,
+    return createSet(
+      values.name,
+      parseInt(values.organization),
+      values.visibility,
+      user.id,
+      values.desc,
+      values.time,
     );
-    if (org)
-      return createSet(
-        values.name,
-        org?.id,
-        values.visibility,
-        user.id,
-        values.desc,
-        values.time,
-      );
   }
 };
 
 export const updateSetAction = async (values: z.infer<typeof SetSchema>) => {
   if (values.organization) {
-    const org = await getOrgByUniqueName(values.organization);
-    if (org)
-      return updateSet(
-        values.id,
-        values.name,
-        values.desc,
-        values.time,
-        values.visibility,
-        org.id,
-      );
+    return updateSet(
+      values.id,
+      values.name,
+      values.desc,
+      values.time,
+      values.visibility,
+      parseInt(values.organization),
+    );
   }
   return updateSet(
     values.id,

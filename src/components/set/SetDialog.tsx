@@ -68,6 +68,9 @@ const SetDialog = ({
       desc: set?.desc || "",
       time: set?.time || { hours: 0, minutes: 0, seconds: 0 },
       visibility: set?.visibility || Visibility.PUBLIC,
+      organization:
+        userOrgs$.peek().find((org) => org.id === set?.organizationId)
+          ?.uniqueName || "",
     },
   });
 
@@ -204,10 +207,7 @@ const SetDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization</FormLabel>
-                    <Select
-                      defaultValue={user$.currentOrgRole.organizationUniqueName.get()}
-                      onValueChange={field.onChange}
-                    >
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={"Select an Organization"} />
@@ -216,7 +216,10 @@ const SetDialog = ({
                       <SelectContent>
                         <SelectGroup>
                           {userOrgs$.get().map((org) => (
-                            <SelectItem key={org.id} value={org.uniqueName}>
+                            <SelectItem
+                              key={org.id}
+                              value={org.id?.toString() || ""}
+                            >
                               {org.uniqueName}
                             </SelectItem>
                           ))}

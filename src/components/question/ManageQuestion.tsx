@@ -20,12 +20,18 @@ import { Pencil, Trash, Plus } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import Link from "next/link";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
-import { env } from "~/env";
+import { deleteQuestionAction } from "~/actions/question";
 
-const ManageQuestion = ({ id }: { id: string }) => {
+const ManageQuestion = ({
+  id,
+  userQuestions,
+}: {
+  id: string;
+  userQuestions: Question[];
+}) => {
   const { toast } = useToast();
   const user$ = useProfile();
-  const userQuestions$ = useObservable<Question[]>([]);
+  const userQuestions$ = useObservable<Question[]>(userQuestions);
 
   return (
     <ManageContainer heading="Manage Questions" id={id}>
@@ -48,7 +54,9 @@ const ManageQuestion = ({ id }: { id: string }) => {
                         "update",
                         question,
                       ) && (
-                        <Link href={`${DEFAULT_LOGIN_REDIRECT}/question`}>
+                        <Link
+                          href={`${DEFAULT_LOGIN_REDIRECT}/question?action=update&question=${question.id}`}
+                        >
                           <Button variant={"ghost"}>
                             <Pencil width={20} />
                           </Button>
@@ -74,7 +82,7 @@ const ManageQuestion = ({ id }: { id: string }) => {
       <Memo>
         {() => (
           <Card>
-            <Link href={`${DEFAULT_LOGIN_REDIRECT}/question`}>
+            <Link href={`${DEFAULT_LOGIN_REDIRECT}/question?action=create`}>
               <Button className="h-full w-full">
                 <Plus />
               </Button>

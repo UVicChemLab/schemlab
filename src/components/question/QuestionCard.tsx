@@ -46,6 +46,7 @@ import {
 } from "~/components/ui/select";
 import { capitalize } from "~/lib/utils";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { createQuestionAction, updateQuestionAction } from "~/actions/question";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
@@ -70,6 +71,7 @@ const QuestionCard = ({
   const userLevels$ = useObservable<Level[]>(levels);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const action = searchParams.get("action");
   const params = new URLSearchParams(searchParams.toString());
   params.set("api_path", sketcherPath);
 
@@ -91,14 +93,23 @@ const QuestionCard = ({
   });
 
   function onSubmit(values: z.infer<typeof QuestionSchema>) {
-    console.log(values);
+    const questionAction =
+      action === "update" ? updateQuestionAction : createQuestionAction;
+    questionAction(values, question?.id).then((res) => {
+      if (res?.success) {
+        toast({
+          title: res.message,
+          description: new Date().toISOString(),
+        });
+      } else {
+        toast({
+          title: res?.message || "Something went wrong",
+          description: new Date().toISOString(),
+        });
+      }
+    });
+    questionForm.reset();
   }
-
-  const setList = [
-    { id: 1, name: "set1" },
-    { id: 2, name: "set2" },
-    { id: 3, name: "set3" },
-  ];
 
   return (
     <Card className="right-20 top-10 m-20">
@@ -158,7 +169,10 @@ const QuestionCard = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Question Set</FormLabel>
-                      <Select onValueChange={field.onChange}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={question?.setid.toString() || ""}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue
@@ -190,7 +204,10 @@ const QuestionCard = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Question Type</FormLabel>
-                      <Select onValueChange={field.onChange}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={question?.typeid.toString() || ""}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue
@@ -224,7 +241,10 @@ const QuestionCard = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Question Level</FormLabel>
-                      <Select onValueChange={field.onChange}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={question?.levelid.toString() || ""}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue
@@ -281,7 +301,7 @@ const QuestionCard = ({
                   <FormLabel>Answer</FormLabel>
                   <FormControl>
                     <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
-                      <Sketcher />
+                      <Sketcher initialContent={question?.answer || ""} />
                     </div>
                   </FormControl>
                   <FormDescription>Type your answer here</FormDescription>

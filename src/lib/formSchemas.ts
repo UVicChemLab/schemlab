@@ -97,7 +97,9 @@ export const SetSchema = z.object({
     seconds: z.number().default(0),
   }),
   visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
-  organization: z.optional(z.string()),
+  organization: z.string().min(1, {
+    message: "Organization is required",
+  }),
 });
 
 export const QuestionTypeSchema = z.object({

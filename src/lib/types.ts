@@ -7,7 +7,7 @@ import {
   Question,
 } from "~/server/db/schema";
 
-export const appName = "SChemLab";
+export const appName = "ChemPuzz";
 
 export type QuestionTime = {
   hours: number;
