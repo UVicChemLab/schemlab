@@ -43,7 +43,8 @@ const QuestionPage = async ({
     if (searchParams.question) {
       questionDets = await getQuestionById(parseInt(searchParams.question));
     }
-    const sketcherPath = env.PUBLIC_URL + env.REACT_APP_API_PATH;
+    const sketcherPath =
+      env.INDIGO_SERVICE_PUBLIC_URL + env.INDIGO_SERVICE_API_PATH;
     return (
       <div>
         <QuestionCard

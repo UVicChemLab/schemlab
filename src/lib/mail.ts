@@ -3,7 +3,7 @@ import { env } from "~/env";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 
-const domain = env.NEXT_PUBLIC_APP_URL;
+const domain = env.PUBLIC_APP_URL;
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${domain}/auth/new-password?token=${token}`;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Editor } from "ketcher-react";
 import { Ketcher, RemoteStructServiceProvider } from "ketcher-core";
 
@@ -75,7 +74,7 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
 
 const SketcherEditor = ({ initialContent }: { initialContent?: string }) => {
   const structServiceProvider = new RemoteStructServiceProvider(
-    process.env.REACT_APP_API_PATH!,
+    process.env.INDIGO_SERVICE_API_PATH!,
   );
 
   const hiddenButtonsConfig = getHiddenButtonsConfig();
@@ -83,7 +82,7 @@ const SketcherEditor = ({ initialContent }: { initialContent?: string }) => {
   return (
     <Editor
       errorHandler={(message: string) => console.log(message)}
-      staticResourcesUrl={process.env.PUBLIC_URL!}
+      staticResourcesUrl={process.env.INDIGO_SERVICE_PUBLIC_URL!}
       structServiceProvider={structServiceProvider}
       buttons={hiddenButtonsConfig}
       onInit={(ketcher: Ketcher) => {
