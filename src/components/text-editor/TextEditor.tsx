@@ -11,7 +11,13 @@ import ListItem from "@tiptap/extension-list-item";
 import OrderedList from "@tiptap/extension-ordered-list";
 import BulletList from "@tiptap/extension-bullet-list";
 
-const TextEditor = () => {
+const TextEditor = ({
+  onChange,
+  initialContent,
+}: {
+  onChange: (content: string) => void;
+  initialContent?: string;
+}) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -33,6 +39,10 @@ const TextEditor = () => {
         keepAttributes: true,
       }),
     ],
+    content: initialContent,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
     editorProps: {
       attributes: {
         class:

@@ -34,18 +34,22 @@ import {
   updateOrganizationAction,
 } from "~/actions/organization";
 import { type Organization } from "~/server/db/schema";
-import { OrgRole } from "~/lib/types";
+import { OrgRole, Role } from "~/lib/types";
+import { type Observable } from "@legendapp/state";
+import { ExtendedUser } from "~/lib/types";
 
 const OrganizationDialog = ({
   children,
   action,
   org,
-  updateState,
+  user$,
+  userOrganizations$,
 }: {
   children: React.ReactNode;
   action: "create" | "update";
   org?: Organization;
-  updateState: (orgRoles: OrgRole[], userOrgs: Organization[]) => void;
+  user$: Observable<ExtendedUser>;
+  userOrganizations$: Observable<Organization[]>;
 }) => {
   const organizationForm = useForm<z.infer<typeof OrganizationSchema>>({
     resolver: zodResolver(OrganizationSchema),
@@ -69,14 +73,36 @@ const OrganizationDialog = ({
           title: res.message,
           description: new Date().toISOString(),
         });
-        updateState(
-          res.orgRoles as OrgRole[],
-          res.organizations as Organization[],
-        );
+        if (action === "create") {
+          if (res.organization) {
+            userOrganizations$.push(res.organization as Organization);
+            user$.orgRoles.push({
+              organizationUniqueName: res.organization.uniqueName,
+              roleName: Role.ORGADMIN,
+            } as OrgRole);
+          }
+        } else if (action === "update") {
+          if (res.organization) {
+            const userOrgs = userOrganizations$.get();
+            const orgIdx = userOrgs.findIndex(
+              (org) => org.id === res.organization.id,
+            );
+            userOrganizations$[orgIdx]?.set(res.organization);
+            const orgRoles = user$.orgRoles.get();
+            const orgRoleIdx = orgRoles.findIndex(
+              (orgRole) =>
+                orgRole.organizationUniqueName === res.organization.uniqueName,
+            );
+            user$.orgRoles[orgRoleIdx]?.set({
+              organizationUniqueName: res.organization.uniqueName,
+              roleName: Role.ORGADMIN,
+            } as OrgRole);
+          }
+        }
       } else {
         toast({
-          title: "Something went wrong",
-          description: res?.message + " " + new Date().toISOString(),
+          title: res?.message || "Something went wrong",
+          description: new Date().toISOString(),
         });
       }
     });

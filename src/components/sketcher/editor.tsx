@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Editor } from "ketcher-react";
 import { Ketcher, RemoteStructServiceProvider } from "ketcher-core";
 
@@ -72,7 +73,7 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
   }, {});
 };
 
-const SketcherEditor = () => {
+const SketcherEditor = ({ initialContent }: { initialContent?: string }) => {
   const structServiceProvider = new RemoteStructServiceProvider(
     process.env.REACT_APP_API_PATH!,
   );
@@ -93,6 +94,9 @@ const SketcherEditor = () => {
           },
           "*",
         );
+        if (initialContent) {
+          ketcher.setMolecule(initialContent);
+        }
       }}
     />
   );

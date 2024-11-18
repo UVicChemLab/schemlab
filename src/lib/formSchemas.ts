@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { appName, Role } from "~/lib/types";
+import { appName, Role, Visibility } from "~/lib/types";
 
 export const LoginSchema = z.object({
   email: z.string().email({
@@ -83,4 +83,58 @@ export const OrganizationSchema = z.object({
   description: z.optional(z.string()),
   link: z.optional(z.string()),
   image: z.optional(z.string()),
+});
+
+export const SetSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, {
+    message: "Name is required",
+  }),
+  desc: z.optional(z.string()),
+  time: z.object({
+    hours: z.number().default(0),
+    minutes: z.number().default(0),
+    seconds: z.number().default(0),
+  }),
+  visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
+  organization: z.optional(z.string()),
+});
+
+export const QuestionTypeSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, {
+    message: "Name is required",
+  }),
+  desc: z.optional(z.string()),
+  visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
+  organization: z.optional(z.string()),
+});
+
+export const LevelSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, {
+    message: "Name is required",
+  }),
+  desc: z.optional(z.string()),
+  visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
+  organization: z.optional(z.string()),
+});
+
+export const QuestionSchema = z.object({
+  number: z.number().int().min(1),
+  question: z.string().min(1, {
+    message: "Question is required",
+  }),
+  answer: z.string().min(1, {
+    message: "Answer is required",
+  }),
+  level: z.string().min(1, {
+    message: "Level is required",
+  }),
+  type: z.string().min(1, {
+    message: "Question Type is required",
+  }),
+  set: z.string().min(1, {
+    message: "Question Set is required",
+  }),
 });

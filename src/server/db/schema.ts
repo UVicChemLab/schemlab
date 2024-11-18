@@ -5,18 +5,19 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   integer,
-  jsonb,
+  json,
   pgEnum,
   pgTable,
   primaryKey,
+  numeric,
   serial,
   text,
   timestamp,
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import type { AdapterAccountType } from "next-auth/adapters";
-import { Role, Visibility } from "~/lib/types";
+import type { AdapterAccount } from "next-auth/adapters";
+import { Role, Visibility, type QuestionTime } from "~/lib/types";
 
 export const roleEnum = pgEnum("name", [
   Role.ADMIN,
@@ -53,7 +54,7 @@ export const accounts = pgTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccountType>().notNull(),
+    type: text("type").$type<AdapterAccount>().notNull(),
     provider: text("provider").notNull(),
     providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
@@ -207,13 +208,14 @@ export const questions = pgTable("question", {
   typeid: integer("type_id")
     .references(() => types.id, { onDelete: "cascade" })
     .notNull(),
-  answerid: integer("answer_id")
+  answer: varchar("answer", { length: 1024 }),
+  /*answerid: integer("answer_id")
     .references(() => answers.id, { onDelete: "cascade" })
-    .notNull(),
+    .notNull(),*/
   setid: integer("set_id")
     .references(() => sets.id, { onDelete: "cascade" })
     .notNull(),
-  time: jsonb("question_time").notNull().default({
+  time: json("question_time").$type<QuestionTime>().notNull().default({
     hours: 0,
     minutes: 1,
     seconds: 0,
@@ -229,70 +231,97 @@ export const questions = pgTable("question", {
   ),
 });
 
-export const sets = pgTable("set", {
-  id: serial("set_id").primaryKey(),
-  name: varchar("set_name", { length: 50 }).notNull().unique(),
-  desc: varchar("set_desc", { length: 1024 }),
-  time: jsonb("set_time").notNull().default({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  }),
-  visibility: visibilityEnum().notNull(),
-  organizationId: integer("organization_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  createdBy: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
+export type Question = typeof questions.$inferInsert;
 
-export const types = pgTable("type", {
-  id: serial("type_id").primaryKey(),
-  name: varchar("type_name", { length: 50 }).notNull().unique(),
-  desc: varchar("type_desc", { length: 1024 }),
-  visibility: visibilityEnum().notNull(),
-  organizationId: integer("organization_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  createdBy: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
+export const sets = pgTable(
+  "set",
+  {
+    id: serial("set_id").notNull(),
+    name: varchar("set_name", { length: 50 }).notNull(),
+    desc: varchar("set_desc", { length: 1024 }),
+    time: json("set_time").$type<QuestionTime>().notNull().default({
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    }),
+    visibility: visibilityEnum().notNull(),
+    organizationId: integer("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    createdBy: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (set) => [
+    unique().on(set.name, set.organizationId),
+    primaryKey({
+      columns: [set.id],
+    }),
+  ],
+);
 
-export const levels = pgTable("level", {
-  id: serial("level_id").primaryKey(),
-  name: varchar("level_name", { length: 50 }).notNull().unique(),
-  desc: varchar("level_desc", { length: 1024 }),
-  visibility: visibilityEnum().notNull(),
-  organizationId: integer("organization_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  createdBy: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
+export type Set = typeof sets.$inferInsert;
+export type SetSelect = typeof sets.$inferSelect;
+
+export const types = pgTable(
+  "type",
+  {
+    id: serial("type_id").primaryKey(),
+    name: varchar("type_name", { length: 50 }).notNull(),
+    desc: varchar("type_desc", { length: 1024 }),
+    visibility: visibilityEnum().notNull(),
+    organizationId: integer("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    createdBy: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (type) => [unique().on(type.name, type.organizationId)],
+);
+
+export type QuestionType = typeof types.$inferInsert;
+
+export const levels = pgTable(
+  "level",
+  {
+    id: serial("level_id").primaryKey(),
+    name: varchar("level_name", { length: 50 }).notNull(),
+    desc: varchar("level_desc", { length: 1024 }),
+    visibility: visibilityEnum().notNull(),
+    organizationId: integer("organization_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    createdBy: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (level) => [unique().on(level.name, level.organizationId)],
+);
+
+export type Level = typeof levels.$inferInsert;
 
 export const answers = pgTable("answer", {
   id: serial("answer_id").primaryKey(),
+  answer: varchar("answer", { length: 1024 }).notNull(),
   createdBy: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -303,3 +332,4 @@ export const answers = pgTable("answer", {
     () => new Date(),
   ),
 });
+export type Answer = typeof answers.$inferInsert;

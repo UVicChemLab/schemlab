@@ -6,7 +6,6 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { ModeToggle } from "~/components/Mode-Toggle";
 import { SessionProvider } from "next-auth/react";
-import { ProfileProvider } from "~/components/profile-provider";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
@@ -22,28 +21,26 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <ProfileProvider>
-        <html
-          lang="en"
-          className={`${GeistSans.variable}`}
-          suppressHydrationWarning
-        >
-          <body>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster />
-              <div className="fixed bottom-4 right-4">
-                <ModeToggle />
-              </div>
-            </ThemeProvider>
-          </body>
-        </html>
-      </ProfileProvider>
+      <html
+        lang="en"
+        className={`${GeistSans.variable}`}
+        suppressHydrationWarning
+      >
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+            <div className="fixed bottom-4 right-4">
+              <ModeToggle />
+            </div>
+          </ThemeProvider>
+        </body>
+      </html>
     </SessionProvider>
   );
 }

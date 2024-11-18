@@ -8,3 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export function capitalizaAndRestLower(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}

@@ -1,7 +1,19 @@
 import { DefaultSession } from "next-auth";
-import { type Organization } from "~/server/db/schema";
+import {
+  type Organization,
+  type Set,
+  type QuestionType,
+  type Level,
+  Question,
+} from "~/server/db/schema";
 
 export const appName = "SChemLab";
+
+export type QuestionTime = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+};
 
 export enum Role {
   ADMIN = "admin",
@@ -46,6 +58,22 @@ export type Permissions = {
   organizations: {
     dataType: Organization;
     action: "view" | "create" | "update" | "delete" | "join";
+  };
+  sets: {
+    dataType: Set;
+    action: "view" | "create" | "update" | "delete";
+  };
+  types: {
+    dataType: QuestionType;
+    action: "view" | "create" | "update" | "delete";
+  };
+  levels: {
+    dataType: Level;
+    action: "view" | "create" | "update" | "delete";
+  };
+  questions: {
+    dataType: Question;
+    action: "view" | "create" | "update" | "delete";
   };
 };
 

@@ -198,7 +198,6 @@ export const createOrganization = async (
       .values({ uniqueName, name, desc, image, link, createdBy: userId })
       .returning();
 
-    const admins = await getAllAdmins();
     const role = await db.query.roles.findFirst({
       where: (roles, { eq }) => eq(roles.name, Role.ORGADMIN),
     });
@@ -209,24 +208,41 @@ export const createOrganization = async (
         roleId: role.id,
       });
 
-      const userOrgs = await getAllUserOrganizations(userId);
-      const orgRoles = await getUserOrganizationRoles(userId);
       return {
         success: true,
         message: `Organization ${uniqueName} Created Successfully`,
-        organizations: userOrgs as Organization[],
-        orgRoles: orgRoles as OrgRole[],
+        organization: organization[0] as Organization,
       };
+    } else {
+      const organization = await getOrgByUniqueName(uniqueName);
+      if (organization) {
+        await deleteOrganization(organization.id);
+        return {
+          success: false,
+          message: `Organization with uniqueName ${uniqueName} already exists`,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Error Creating Organization ${uniqueName}`,
+        };
+      }
     }
   } catch (e) {
     const organization = await getOrgByUniqueName(uniqueName);
     if (organization) {
       await deleteOrganization(organization.id);
+      return {
+        success: false,
+        message:
+          `Organization with uniqueName ${uniqueName} already exists ` + e,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Error Creating Organization ${uniqueName} ` + e,
+      };
     }
-    return {
-      success: false,
-      message: `Organization with uniqueName ${uniqueName} already exists`,
-    };
   }
 };
 
@@ -238,47 +254,56 @@ export const updateOrganization = async (
   image?: string,
   link?: string,
 ) => {
-  const res = await db
-    .update(organizations)
-    .set({ uniqueName, name, desc, image, link })
-    .where(eq(organizations.id, id))
-    .returning();
+  try {
+    const res = await db
+      .update(organizations)
+      .set({ uniqueName, name, desc, image, link })
+      .where(eq(organizations.id, id))
+      .returning();
 
-  if (res[0]) {
-    const userOrgs = await getAllUserOrganizations(res[0].createdBy);
-    const orgRoles = await getUserOrganizationRoles(res[0].createdBy);
-    return {
-      success: true,
-      message: `Organization ${uniqueName} Updated Successfully`,
-      organizations: userOrgs as Organization[],
-      orgRoles: orgRoles as OrgRole[],
-    };
-  } else {
+    if (res[0]) {
+      return {
+        success: true,
+        message: `Organization ${uniqueName} Updated Successfully`,
+        organization: res[0] as Organization,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Cannot Update Organization ${uniqueName}`,
+      };
+    }
+  } catch (e) {
     return {
       success: false,
-      message: `Organization with uniqueName ${uniqueName} already exists`,
+      message: `Organization with uniqueName ${uniqueName} already exists ` + e,
     };
   }
 };
 
 export const deleteOrganization = async (id: number) => {
-  const res = await db
-    .delete(organizations)
-    .where(eq(organizations.id, id))
-    .returning();
-  if (res[0]) {
-    const userOrgs = await getAllUserOrganizations(res[0].createdBy);
-    const orgRoles = await getUserOrganizationRoles(res[0].createdBy);
-    return {
-      success: true,
-      message: `Organization ${res[0].uniqueName} deleted successfully`,
-      organizations: userOrgs as Organization[],
-      orgRoles: orgRoles as OrgRole[],
-    };
-  } else {
+  try {
+    const res = await db
+      .delete(organizations)
+      .where(eq(organizations.id, id))
+      .returning();
+
+    if (res[0]) {
+      return {
+        success: true,
+        message: `Organization ${res[0]?.uniqueName || id} deleted successfully`,
+        organization: res[0] as Organization,
+      };
+    } else {
+      return {
+        success: false,
+        message: `Organization with id: ${id} not found`,
+      };
+    }
+  } catch (error) {
     return {
       success: false,
-      message: `Organization with id: ${id} not found`,
+      message: `Erro Deleting Organization with id: ${id} ` + error,
     };
   }
 };

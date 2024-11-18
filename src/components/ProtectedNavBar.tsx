@@ -25,18 +25,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { Merriweather } from "next/font/google";
 import { cn } from "~/lib/utils";
-import { useProfile } from "~/components/profile-provider";
 import { type ExtendedUser } from "~/lib/types";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { capitalize } from "~/lib/utils";
-import { getCurrentUser } from "~/actions/profile";
 import { useSession } from "next-auth/react";
 import { appName } from "~/lib/types";
 import { Organization } from "~/server/db/schema";
-import { getAllUserOrganizations } from "~/server/db/calls/auth";
-import { Memo, observer, useEffectOnce } from "@legendapp/state/react";
-import { observable } from "@legendapp/state";
+import { Memo, observer, useObservable } from "@legendapp/state/react";
+import { useProfile } from "~/components/profile-provider";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
+import { Button } from "./ui/button";
 
 const font = Merriweather({
   subsets: ["latin"],
@@ -50,11 +48,10 @@ const findOrgRole = (org: string, user: ExtendedUser) => {
   return orgRole;
 };
 
-const ProtectedNavBar = function () {
+const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
   const pathname = usePathname();
-  const router = useRouter();
   const user$ = useProfile();
-  const userOrgs$ = observable<Organization[]>([]);
+  const userOrgs$ = useObservable<Organization[]>(userOrgs);
   const { update } = useSession();
   const [isPending, startTransition] = useTransition();
 
@@ -70,26 +67,8 @@ const ProtectedNavBar = function () {
     }
   };
 
-  useEffectOnce(() => {
-    const fetchUser = async () => {
-      const userData = await getCurrentUser();
-      if (!userData) {
-        router.refresh();
-      } else {
-        user$.set(userData);
-        const userOrgsData = await getAllUserOrganizations(userData.id);
-        if (userOrgsData) {
-          userOrgs$.set(userOrgsData);
-        }
-      }
-    };
-    fetchUser();
-  }, []);
-
-  if (!user$.get()) return null;
-
   return (
-    <header className="sticky top-0 w-full border-b">
+    <header className="sticky top-0 mb-10 w-full border-b">
       <div className="m-2 flex items-center justify-between px-16">
         <div className="flex items-center justify-start gap-4">
           <Memo>
@@ -144,15 +123,57 @@ const ProtectedNavBar = function () {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link
-                href={`${DEFAULT_LOGIN_REDIRECT}/manage`}
-                legacyBehavior
-                passHref
-              >
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  {capitalize(user$.currentOrgRole.roleName.get())}
-                </NavigationMenuLink>
-              </Link>
+              <NavigationMenuTrigger>
+                {capitalize(user$.currentOrgRole.roleName.get())}
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="flex flex-col items-center justify-center">
+                  <li className="w-full border-b">
+                    <Link
+                      href={`${DEFAULT_LOGIN_REDIRECT}/manage#manage-orgs`}
+                      legacyBehavior
+                      passHref
+                    >
+                      <Button className="w-full" variant="ghost">
+                        Manage Organizations
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full border-b">
+                    <Link
+                      href={`${DEFAULT_LOGIN_REDIRECT}/manage#manage-sets`}
+                      legacyBehavior
+                      passHref
+                    >
+                      <Button className="w-full" variant="ghost">
+                        Manage Sets
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full border-b">
+                    <Link
+                      href={`${DEFAULT_LOGIN_REDIRECT}/manage#manage-qtypes`}
+                      legacyBehavior
+                      passHref
+                    >
+                      <Button className="w-full" variant="ghost">
+                        Manage Question Types
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full border-b">
+                    <Link
+                      href={`${DEFAULT_LOGIN_REDIRECT}/manage#manage-levels`}
+                      legacyBehavior
+                      passHref
+                    >
+                      <Button className="w-full" variant="ghost">
+                        Manage Levels
+                      </Button>
+                    </Link>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>

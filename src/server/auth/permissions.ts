@@ -13,6 +13,30 @@ const ROLES = {
       delete: true,
       join: true,
     },
+    sets: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
+    types: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
+    levels: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
+    questions: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
   },
   orgAdmin: {
     organizations: {
@@ -25,6 +49,30 @@ const ROLES = {
       delete: (user, org) => user.id === org.createdBy,
       join: true,
     },
+    sets: {
+      view: true,
+      create: true,
+      update: (user, set) => user.id === set.createdBy,
+      delete: (user, set) => user.id === set.createdBy,
+    },
+    types: {
+      view: true,
+      create: true,
+      update: (user, type) => user.id === type.createdBy,
+      delete: (user, type) => user.id === type.createdBy,
+    },
+    levels: {
+      view: true,
+      create: true,
+      update: (user, level) => user.id === level.createdBy,
+      delete: (user, level) => user.id === level.createdBy,
+    },
+    questions: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
   },
   instructor: {
     organizations: {
@@ -35,6 +83,30 @@ const ROLES = {
       create: true,
       join: true,
     },
+    sets: {
+      view: true,
+      create: true,
+      update: (user, set) => user.id === set.createdBy,
+      delete: (user, set) => user.id === set.createdBy,
+    },
+    types: {
+      view: true,
+      create: true,
+      update: (user, type) => user.id === type.createdBy,
+      delete: (user, type) => user.id === type.createdBy,
+    },
+    levels: {
+      view: true,
+      create: true,
+      update: (user, level) => user.id === level.createdBy,
+      delete: (user, level) => user.id === level.createdBy,
+    },
+    questions: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
   },
   student: {
     organizations: {
@@ -44,6 +116,30 @@ const ROLES = {
         ),
       create: true,
       join: true,
+    },
+    sets: {
+      view: true,
+      create: true,
+      update: (user, set) => user.id === set.createdBy,
+      delete: (user, set) => user.id === set.createdBy,
+    },
+    types: {
+      view: true,
+      create: true,
+      update: (user, type) => user.id === type.createdBy,
+      delete: (user, type) => user.id === type.createdBy,
+    },
+    levels: {
+      view: true,
+      create: true,
+      update: (user, level) => user.id === level.createdBy,
+      delete: (user, level) => user.id === level.createdBy,
+    },
+    questions: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
     },
   },
 } as const satisfies RolesWithPermissions;

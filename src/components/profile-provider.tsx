@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { observable } from "@legendapp/state";
+import { observable, type Observable } from "@legendapp/state";
+import { useObservable } from "@legendapp/state/react";
 import { type ExtendedUser, defaultOrgRole } from "~/lib/types";
 
 const profileState$ = observable({
@@ -19,11 +20,16 @@ const ProfileContext = createContext(profileState$);
 
 export const ProfileProvider = ({
   children,
+  initialValue,
 }: {
   children: React.ReactNode;
+  initialValue?: ExtendedUser;
 }) => {
+  let profile: Observable<ExtendedUser>;
+  if (initialValue) profile = useObservable<ExtendedUser>(initialValue);
+  else profile = profileState$;
   return (
-    <ProfileContext.Provider value={profileState$}>
+    <ProfileContext.Provider value={profile}>
       {children}
     </ProfileContext.Provider>
   );
