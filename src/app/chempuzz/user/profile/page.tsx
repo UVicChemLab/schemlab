@@ -69,8 +69,10 @@ const ProfilePage = () => {
       }
     };
 
-    fetchOrganizations();
-  }, []);
+    fetchOrganizations().catch((e) => {
+      console.error(e);
+    });
+  });
 
   const form = useForm<z.infer<typeof ProfileSchema>>({
     resolver: zodResolver(ProfileSchema),
@@ -89,10 +91,8 @@ const ProfilePage = () => {
         .then((data) => {
           if (data?.error) {
             error$.set(data.error);
-          }
-
-          if (data?.success) {
-            update();
+          } else if (data?.success) {
+            update().catch((e) => console.error(e));
             success$.set(data.success);
           }
         })

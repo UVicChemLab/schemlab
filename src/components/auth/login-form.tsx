@@ -65,7 +65,7 @@ const LoginForm = () => {
           }
         })
         .catch((e) => {
-          setError(() => e.message);
+          setError(() => e.message as string);
           if (e.message === "NEXT_REDIRECT") {
             setSuccess(() => "Redirecting...");
             setError(() => "");
@@ -158,7 +158,7 @@ const LoginForm = () => {
               </>
             )}
           </div>
-          <FormError message={error || urlError} />
+          <FormError message={error ?? urlError} />
           <FormSucess message={success} />
           <Button disabled={isPending} type="submit" className="w-full">
             {showTwoFactor ? "Confirm" : "Login"}

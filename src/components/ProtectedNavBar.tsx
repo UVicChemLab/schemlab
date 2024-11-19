@@ -62,7 +62,9 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
       startTransition(() => {
         update({
           user: user$.get(),
-        }).then(() => {});
+        }).catch((e) => {
+          console.error(e);
+        });
       });
     }
   };
@@ -82,7 +84,7 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
                           org.uniqueName.get() ===
                           user$.currentOrgRole.organizationUniqueName.get(),
                       )
-                      ?.image.get() || "/compound.png"
+                      ?.image.get() ?? "/compound.png"
                   }
                   width={50}
                   height={50}

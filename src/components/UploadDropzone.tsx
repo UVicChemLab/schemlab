@@ -20,9 +20,6 @@ import { Input } from "./ui/input";
 import { type Editor } from "@tiptap/react";
 
 const UploadDropzone = ({ editor }: { editor: Editor }) => {
-  if (!editor) {
-    return null;
-  }
   const [files, setFiles] = useState<File[]>([]);
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -51,6 +48,10 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
       generatePermittedFileTypes(routeConfig).fileTypes,
     ),
   });
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <Dialog>

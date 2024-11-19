@@ -34,7 +34,7 @@ export const login = async (
 
   const existingUser = await getUserByEmail(email);
 
-  if (!existingUser || !existingUser.email || !existingUser.password) {
+  if (!existingUser?.email || !existingUser?.password) {
     return { error: "No Account on this email!" };
   }
 
@@ -107,7 +107,7 @@ export const login = async (
     await signIn("credentials", {
       email,
       password,
-      redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
+      redirectTo: callbackUrl ?? DEFAULT_LOGIN_REDIRECT,
     });
 
     return { success: "Login Sucess!" };
@@ -128,6 +128,6 @@ export const login = async (
     }
     throw e;
   } finally {
-    redirect(callbackUrl || DEFAULT_LOGIN_REDIRECT);
+    redirect(callbackUrl ?? DEFAULT_LOGIN_REDIRECT);
   }
 };

@@ -52,7 +52,7 @@ export const newPassword = async (
 
   await changePassword(existingUser.id, hashedPassword);
 
-  deletePasswordResetToken(existingToken.identifier, existingToken.token);
+  await deletePasswordResetToken(existingToken.identifier, existingToken.token);
 
   return { success: "Password updated!" };
 };
