@@ -11,8 +11,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    INDIGO_SERVICE_API_PATH: z.string(),
-    INDIGO_SERVICE_PUBLIC_URL: z.string(),
     UPLOADTHING_TOKEN: z.string(),
     AUTH_SECRET: z.string(),
     AUTH_RESEND_KEY: z.string(),
@@ -29,7 +27,6 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
-    NEXT_PUBLIC_APP_URL: z.string(),
   },
 
   /**
@@ -39,8 +36,6 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    INDIGO_SERVICE_API_PATH: process.env.INDIGO_SERVICE_API_PATH,
-    INDIGO_SERVICE_PUBLIC_URL: process.env.INDIGO_SERVICE_PUBLIC_URL,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
@@ -48,7 +43,6 @@ export const env = createEnv({
     AUTH_GITHUB_SECRET: process.env.AUTH_GITHUB_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

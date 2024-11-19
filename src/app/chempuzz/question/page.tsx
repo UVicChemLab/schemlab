@@ -52,8 +52,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
             sets={userSets}
             qTypes={userQuestionTypes}
             question={questionDets}
-            indigoServiceApiPath={env.INDIGO_SERVICE_API_PATH}
-            indigoServicePublicUrl={env.INDIGO_SERVICE_PUBLIC_URL}
+            indigoServiceApiPath={"/v2"}
+            indigoServicePublicUrl={"http://40.176.84.110"}
           />
         </div>
       );
@@ -64,8 +64,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
           levels={userLevels}
           sets={userSets}
           qTypes={userQuestionTypes}
-          indigoServiceApiPath={env.INDIGO_SERVICE_API_PATH}
-          indigoServicePublicUrl={env.INDIGO_SERVICE_PUBLIC_URL}
+          indigoServiceApiPath={"/v2"}
+          indigoServicePublicUrl={"http://40.176.84.110"}
         />
       </div>
     );
