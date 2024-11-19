@@ -72,9 +72,17 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
   }, {});
 };
 
-const SketcherEditor = ({ initialContent }: { initialContent?: string }) => {
+const SketcherEditor = ({
+  indigoServiceApiPath,
+  indigoServicePublicUrl,
+  initialContent,
+}: {
+  indigoServiceApiPath: string;
+  indigoServicePublicUrl: string;
+  initialContent?: string;
+}) => {
   const structServiceProvider = new RemoteStructServiceProvider(
-    process.env.INDIGO_SERVICE_API_PATH!,
+    indigoServiceApiPath!,
   );
 
   const hiddenButtonsConfig = getHiddenButtonsConfig();
@@ -82,7 +90,7 @@ const SketcherEditor = ({ initialContent }: { initialContent?: string }) => {
   return (
     <Editor
       errorHandler={(message: string) => console.log(message)}
-      staticResourcesUrl={process.env.INDIGO_SERVICE_PUBLIC_URL!}
+      staticResourcesUrl={indigoServicePublicUrl!}
       structServiceProvider={structServiceProvider}
       buttons={hiddenButtonsConfig}
       onInit={(ketcher: Ketcher) => {

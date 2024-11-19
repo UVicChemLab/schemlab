@@ -57,13 +57,15 @@ const QuestionCard = ({
   levels,
   sets,
   qTypes,
-  sketcherPath,
+  indigoServiceApiPath,
+  indigoServicePublicUrl,
 }: {
   question?: Question;
   levels: Level[];
   sets: Set[];
   qTypes: QuestionType[];
-  sketcherPath: string;
+  indigoServiceApiPath: string;
+  indigoServicePublicUrl: string;
 }) => {
   const { toast } = useToast();
   const userSets$ = useObservable<Set[]>(sets);
@@ -73,7 +75,7 @@ const QuestionCard = ({
   const searchParams = useSearchParams();
   const action = searchParams.get("action");
   const params = new URLSearchParams(searchParams.toString());
-  params.set("api_path", sketcherPath);
+  params.set("api_path", indigoServicePublicUrl + indigoServiceApiPath);
 
   useEffectOnce(() => {
     router.push(`?${params.toString()}`);
@@ -301,7 +303,11 @@ const QuestionCard = ({
                   <FormLabel>Answer</FormLabel>
                   <FormControl>
                     <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
-                      <Sketcher initialContent={question?.answer || ""} />
+                      <Sketcher
+                        initialContent={question?.answer || ""}
+                        indigoServiceApiPath={indigoServiceApiPath}
+                        indigoServicePublicUrl={indigoServicePublicUrl}
+                      />
                     </div>
                   </FormControl>
                   <FormDescription>Type your answer here</FormDescription>
