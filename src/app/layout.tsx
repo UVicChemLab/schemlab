@@ -3,6 +3,10 @@ import "~/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/toaster";
+import { ModeToggle } from "~/components/Mode-Toggle";
+import { SessionProvider } from "next-auth/react";
+import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
   title: "Spectroscopy Chemistry Lab",
@@ -10,21 +14,33 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/compound.png" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <SessionProvider session={session}>
+      <html
+        lang="en"
+        className={`${GeistSans.variable}`}
+        suppressHydrationWarning
+      >
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+            <div className="fixed bottom-4 right-4 z-10">
+              <ModeToggle />
+            </div>
+          </ThemeProvider>
+        </body>
+      </html>
+    </SessionProvider>
   );
 }
