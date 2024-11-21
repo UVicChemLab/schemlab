@@ -51,8 +51,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
             sets={userSets}
             qTypes={userQuestionTypes}
             question={questionDets}
-            indigoServiceApiPath={env.NEXT_PUBLIC_INDIGO_API_PATH}
-            indigoServicePublicUrl={env.NEXT_PUBLIC_INDIGO_PUBLIC_URL}
+            indigoServiceApiPath={"/v2"}
+            indigoServicePublicUrl={"https://indigo.chemistrypuzzles.ca"}
           />
         </div>
       );
@@ -63,8 +63,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
           levels={userLevels}
           sets={userSets}
           qTypes={userQuestionTypes}
-          indigoServiceApiPath={env.NEXT_PUBLIC_INDIGO_API_PATH}
-          indigoServicePublicUrl={env.NEXT_PUBLIC_INDIGO_PUBLIC_URL}
+          indigoServiceApiPath={"/v2"}
+          indigoServicePublicUrl={"https://indigo.chemistrypuzzles.ca"}
         />
       </div>
     );
