@@ -54,7 +54,7 @@ const ManageQuestion = ({
                         question,
                       ) && (
                         <Link
-                          href={`${DEFAULT_LOGIN_REDIRECT}/question?action=update&question=${question.id}`}
+                          href={`${DEFAULT_LOGIN_REDIRECT}/question?action=update&question=${question.id}&api_path=https://indigo.chemistrypuzzles.ca/v2`}
                         >
                           <Button variant={"ghost"}>
                             <Pencil width={20} />
@@ -81,7 +81,9 @@ const ManageQuestion = ({
       <Memo>
         {() => (
           <Card>
-            <Link href={`${DEFAULT_LOGIN_REDIRECT}/question?action=create`}>
+            <Link
+              href={`${DEFAULT_LOGIN_REDIRECT}/question?action=create&api_path=https://indigo.chemistrypuzzles.ca/v2`}
+            >
               <Button className="h-full w-full">
                 <Plus />
               </Button>

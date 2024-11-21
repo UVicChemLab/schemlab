@@ -140,3 +140,9 @@ export const QuestionSchema = z.object({
     message: "Question Set is required",
   }),
 });
+
+export const AnswerSchema = z.object({
+  answer: z.string().min(1, {
+    message: "Answer is required",
+  }),
+});

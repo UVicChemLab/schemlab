@@ -8,6 +8,7 @@ export const publicRoutes = [
   "/home",
   "/auth/new-verification",
   "/api/uploadthing",
+  "/practiceQuestion",
 ];
 
 /**

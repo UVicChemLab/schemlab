@@ -9,12 +9,7 @@ import {
   getAllLevels,
   getQuestionById,
 } from "~/server/db/calls/crud";
-import {
-  type Set,
-  type QuestionType,
-  type Level,
-  type Question,
-} from "~/server/db/schema";
+import type { Set, QuestionType, Level, Question } from "~/server/db/schema";
 import { Role } from "~/lib/types";
 import { getCurrentUser } from "~/actions/profile";
 import { env } from "~/env";

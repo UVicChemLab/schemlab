@@ -2,7 +2,8 @@
 
 import { Editor } from "ketcher-react";
 import { type Ketcher, RemoteStructServiceProvider } from "ketcher-core";
-
+import { useEffectOnce } from "@legendapp/state/react";
+import { useRouter } from "next/navigation";
 import "ketcher-react/dist/index.css";
 
 interface ButtonConfig {
@@ -86,11 +87,16 @@ const SketcherEditor = ({
     indigoServiceApiPath,
   );
 
+  const router = useRouter();
+
   const hiddenButtonsConfig = getHiddenButtonsConfig();
 
   return (
     <Editor
-      errorHandler={(message) => console.log(message)}
+      errorHandler={(message) => {
+        console.log("Error Message:", message);
+        router.refresh();
+      }}
       staticResourcesUrl={indigoServicePublicUrl}
       structServiceProvider={structServiceProvider}
       buttons={hiddenButtonsConfig}
@@ -103,7 +109,10 @@ const SketcherEditor = ({
           "*",
         );
         if (initialContent) {
-          ketcher.setMolecule(initialContent).catch(() => console.log("error"));
+          ketcher.setMolecule(initialContent).catch(() => {
+            router.refresh();
+            console.log("error");
+          });
         }
       }}
     />

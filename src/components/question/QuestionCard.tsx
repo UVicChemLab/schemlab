@@ -43,6 +43,7 @@ import { createQuestionAction, updateQuestionAction } from "~/actions/question";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
+  loading: () => <p>Loading...</p>,
 });
 
 const QuestionCard = ({
@@ -71,8 +72,7 @@ const QuestionCard = ({
   params.set("api_path", indigoServicePublicUrl + indigoServiceApiPath);
 
   useEffectOnce(() => {
-    router.push(`?${params.toString()}`);
-    router.refresh();
+    // router.push(`?${params.toString()}`);
   });
 
   const questionForm = useForm<z.infer<typeof QuestionSchema>>({
