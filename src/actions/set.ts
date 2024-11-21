@@ -5,6 +5,7 @@ import type { SetSchema } from "~/lib/formSchemas";
 import { createSet, updateSet, deleteSet } from "~/server/db/calls/crud";
 import { getCurrentUser } from "./profile";
 
+// Create a new set
 export const createSetAction = async (
   values: z.infer<typeof SetSchema>,
   _?: number,
