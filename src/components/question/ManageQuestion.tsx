@@ -3,7 +3,7 @@
 import React from "react";
 import { useToast } from "~/hooks/use-toast";
 import { useProfile } from "~/components/profile-provider";
-import { observer, Memo, useObservable } from "@legendapp/state/react";
+import { Memo, useObservable } from "@legendapp/state/react";
 import { type Question } from "~/server/db/schema";
 import ManageContainer from "../ui/manage-container";
 import { hasPermission } from "~/server/auth/permissions";
@@ -17,7 +17,6 @@ import {
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Pencil, Trash, Plus } from "lucide-react";
-import QuestionCard from "./QuestionCard";
 import Link from "next/link";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 import { deleteQuestionAction } from "~/actions/question";

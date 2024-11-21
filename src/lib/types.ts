@@ -1,9 +1,9 @@
-import { DefaultSession } from "next-auth";
-import {
-  type Organization,
-  type Set,
-  type QuestionType,
-  type Level,
+import type { DefaultSession } from "next-auth";
+import type {
+  Organization,
+  Set,
+  QuestionType,
+  Level,
   Question,
 } from "~/server/db/schema";
 
@@ -46,13 +46,20 @@ export const defaultOrgRole = {
   roleName: Role.STUDENT,
 } as OrgRole;
 
-export type RolesWithPermissions = {
-  [R in Role]: Partial<{
-    [Key in keyof Permissions]: Partial<{
-      [Action in Permissions[Key]["action"]]: PermissionCheck<Key>;
-    }>;
-  }>;
-};
+export type RolesWithPermissions = Record<
+  Role,
+  Partial<
+    Record<
+      keyof Permissions,
+      Partial<
+        Record<
+          Permissions[keyof Permissions]["action"],
+          PermissionCheck<keyof Permissions>
+        >
+      >
+    >
+  >
+>;
 
 export type Permissions = {
   organizations: {

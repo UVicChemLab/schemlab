@@ -1,12 +1,10 @@
 "use client";
 
-import * as z from "zod";
+import type * as z from "zod";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { ResetSchema } from "~/lib/formSchemas";
-
 import {
   Form,
   FormControl,
@@ -20,7 +18,6 @@ import { Button } from "~/components/ui/button";
 import CardWrapper from "~/components/auth/card-wrapper";
 import { FormError } from "~/components/ui/form-error";
 import { FormSucess } from "~/components/ui/form-success";
-
 import { reset } from "~/actions/reset";
 
 const ResetForm = () => {
@@ -40,10 +37,12 @@ const ResetForm = () => {
     setSuccess("");
 
     startTransition(() => {
-      reset(values).then((data) => {
-        setError(data?.error);
-        setSuccess(data?.success);
-      });
+      reset(values)
+        .then((data) => {
+          setError(data?.error);
+          setSuccess(data?.success);
+        })
+        .catch(() => setError("Something went wrong!"));
     });
   };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Editor } from "ketcher-react";
-import { Ketcher, RemoteStructServiceProvider } from "ketcher-core";
+import { type Ketcher, RemoteStructServiceProvider } from "ketcher-core";
 
 import "ketcher-react/dist/index.css";
 
@@ -57,6 +57,7 @@ type ButtonName =
   | "text"
   | "enhanced-stereo";
 
+// eslint-disable-next-line
 type ButtonsConfig = { [buttonName in ButtonName]?: ButtonConfig };
 
 const getHiddenButtonsConfig = (): ButtonsConfig => {
@@ -82,15 +83,15 @@ const SketcherEditor = ({
   initialContent?: string;
 }) => {
   const structServiceProvider = new RemoteStructServiceProvider(
-    indigoServiceApiPath!,
+    indigoServiceApiPath,
   );
 
   const hiddenButtonsConfig = getHiddenButtonsConfig();
 
   return (
     <Editor
-      errorHandler={(message: string) => console.log(message)}
-      staticResourcesUrl={indigoServicePublicUrl!}
+      errorHandler={(message) => console.log(message)}
+      staticResourcesUrl={indigoServicePublicUrl}
       structServiceProvider={structServiceProvider}
       buttons={hiddenButtonsConfig}
       onInit={(ketcher: Ketcher) => {
@@ -102,7 +103,7 @@ const SketcherEditor = ({
           "*",
         );
         if (initialContent) {
-          ketcher.setMolecule(initialContent);
+          ketcher.setMolecule(initialContent).catch(() => console.log("error"));
         }
       }}
     />

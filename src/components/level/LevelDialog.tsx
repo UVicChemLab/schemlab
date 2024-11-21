@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -33,7 +32,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { capitalize } from "~/lib/utils";
-import { z } from "zod";
+import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "../../hooks/use-toast";
@@ -43,7 +42,7 @@ import { Visibility } from "~/lib/types";
 import { createLevelAction, updateLevelAction } from "~/actions/level";
 import { type Observable } from "@legendapp/state";
 import { useProfile } from "../profile-provider";
-import { observer, Memo } from "@legendapp/state/react";
+import { observer } from "@legendapp/state/react";
 
 const TypeDialog = ({
   children,
@@ -53,7 +52,7 @@ const TypeDialog = ({
   userOrgs$,
 }: {
   children: React.ReactNode;
-  action: string;
+  action: "create" | "update";
   level?: Level;
   userLevels$: Observable<Level[]>;
   userOrgs$: Observable<Organization[]>;
@@ -63,40 +62,49 @@ const TypeDialog = ({
   const levelForm = useForm<z.infer<typeof LevelSchema>>({
     resolver: zodResolver(LevelSchema),
     defaultValues: {
-      id: level?.id || 0,
-      name: level?.name || "",
-      desc: level?.desc || "",
-      visibility: level?.visibility || Visibility.PUBLIC,
+      id: level?.id ?? 0,
+      name: level?.name ?? "",
+      desc: level?.desc ?? "",
+      visibility: level?.visibility ?? Visibility.PUBLIC,
     },
   });
 
   function onSubmit(values: z.infer<typeof LevelSchema>) {
     const levelAction =
       action === "create" ? createLevelAction : updateLevelAction;
-    levelAction(values).then((res) => {
-      if (res?.success) {
-        if (action === "create") {
-          userLevels$.push(res.level as Level);
-        } else if (action === "update") {
-          if (res.level) {
-            const userLevels = userLevels$.get();
-            const levelIdx = userLevels.findIndex(
-              (level) => level.id === res.level?.id,
-            );
-            userLevels$[levelIdx]?.set(res.level);
+    levelAction(values)
+      .then((res) => {
+        if (res?.success) {
+          if (action !== "update") {
+            if (res.level) {
+              userLevels$.push(res.level);
+            }
+          } else {
+            if (res.level) {
+              const userLevels = userLevels$.get();
+              const levelIdx = userLevels.findIndex(
+                (level) => level.id === res.level?.id,
+              );
+              userLevels$[levelIdx]?.set(res.level);
+            }
           }
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
         }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
     levelForm.reset();
   }
 
@@ -107,7 +115,7 @@ const TypeDialog = ({
         <DialogHeader>
           <DialogTitle>{capitalize(action)} Level</DialogTitle>
           <DialogDescription>
-            Please Click save when you're done.
+            {"Please Click save when you're done."}
           </DialogDescription>
         </DialogHeader>
         <Form {...levelForm}>

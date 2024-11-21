@@ -1,7 +1,7 @@
 "use server";
 
-import * as z from "zod";
-import { QuestionSchema } from "~/lib/formSchemas";
+import type * as z from "zod";
+import type { QuestionSchema } from "~/lib/formSchemas";
 import { getCurrentUser } from "./profile";
 import {
   getLastQuestionInSet,
@@ -12,7 +12,7 @@ import {
 
 export async function createQuestionAction(
   values: z.infer<typeof QuestionSchema>,
-  id?: number,
+  _?: number,
 ) {
   const user = await getCurrentUser();
   if (user) {

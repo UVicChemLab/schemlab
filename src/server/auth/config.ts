@@ -1,7 +1,7 @@
 import "next-auth";
 import "next-auth/jwt";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { DefaultSession, type NextAuthConfig } from "next-auth";
+import type { DefaultSession, NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 import { db } from "~/server/db";
 import { accounts, users, verificationTokens } from "~/server/db/schema";
@@ -20,7 +20,7 @@ import {
   deleteTwoFactorToken,
 } from "../db/calls/tokens";
 import bcrypt from "bcryptjs";
-import { DefaultJWT } from "next-auth/jwt";
+import type { DefaultJWT } from "next-auth/jwt";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { type ExtendedUser, type OrgRole, defaultOrgRole } from "~/lib/types";
@@ -37,7 +37,7 @@ const providers: Provider[] = [
         const { email, password } = validatedFields.data;
         const user = await getUserByEmail(email);
 
-        if (!user || !user.password) return null;
+        if (!user?.password) return null;
 
         const passwordsMatch = await bcrypt.compare(password, user.password);
 
@@ -101,11 +101,12 @@ export const authConfig = {
     },
     async jwt({ token, trigger, session, account, user }) {
       if (trigger === "update") {
-        token.name = session.user.name;
-        token.email = session.user.email;
-        token.isTwoFactorEnabled = session.user.isTwoFactorEnabled;
-        token.isOAuth = session.user.isOAuth;
-        token.orgRoles = session.user.orgRoles;
+        // eslint-disable-next-line
+        token.name = session.user.name; // eslint-disable-next-line
+        token.email = session.user.email; // eslint-disable-next-line
+        token.isTwoFactorEnabled = session.user.isTwoFactorEnabled; // eslint-disable-next-line
+        token.isOAuth = session.user.isOAuth; // eslint-disable-next-line
+        token.orgRoles = session.user.orgRoles; // eslint-disable-next-line
         token.currentOrgRole = session.user.currentOrgRole;
       } else if (user?.id) {
         token.id = user.id;
@@ -126,7 +127,7 @@ export const authConfig = {
           const orgRoles: OrgRole[] = await getUserOrganizationRoles(user.id);
           if (orgRoles) {
             token.orgRoles = orgRoles;
-            token.currentOrgRole = orgRoles[0] || defaultOrgRole;
+            token.currentOrgRole = orgRoles[0] ?? defaultOrgRole;
           }
         }
       }

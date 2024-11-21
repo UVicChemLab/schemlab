@@ -33,30 +33,37 @@ const ManageOrg = ({
 
   const deleteOrg = (orgId: number | undefined) => {
     if (!orgId) return;
-    deleteOrganizationAction(orgId).then((res) => {
-      if (res?.success) {
-        const userOrgs = userOrganizations$.get();
-        const orgIdx = userOrgs.findIndex(
-          (org) => org.id === res.organization?.id,
-        );
-        userOrganizations$[orgIdx]?.delete();
-        const orgRoles = user$.orgRoles.get();
-        const orgRoleIdx = orgRoles.findIndex(
-          (orgRole) =>
-            orgRole.organizationUniqueName === res.organization?.uniqueName,
-        );
-        user$.orgRoles[orgRoleIdx]?.delete();
+    deleteOrganizationAction(orgId)
+      .then((res) => {
+        if (res?.success) {
+          const userOrgs = userOrganizations$.get();
+          const orgIdx = userOrgs.findIndex(
+            (org) => org.id === res.organization?.id,
+          );
+          userOrganizations$[orgIdx]?.delete();
+          const orgRoles = user$.orgRoles.get();
+          const orgRoleIdx = orgRoles.findIndex(
+            (orgRole) =>
+              orgRole.organizationUniqueName === res.organization?.uniqueName,
+          );
+          user$.orgRoles[orgRoleIdx]?.delete();
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
   };
 
   return (

@@ -10,7 +10,6 @@ import {
   getQuestionById,
 } from "~/server/db/calls/crud";
 import {
-  type Organization,
   type Set,
   type QuestionType,
   type Level,
@@ -52,8 +51,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
             sets={userSets}
             qTypes={userQuestionTypes}
             question={questionDets}
-            indigoServiceApiPath={"/v2"}
-            indigoServicePublicUrl={"http://40.176.84.110"}
+            indigoServiceApiPath={env.NEXT_PUBLIC_INDIGO_API_PATH}
+            indigoServicePublicUrl={env.NEXT_PUBLIC_INDIGO_PUBLIC_URL}
           />
         </div>
       );
@@ -64,8 +63,8 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
           levels={userLevels}
           sets={userSets}
           qTypes={userQuestionTypes}
-          indigoServiceApiPath={"/v2"}
-          indigoServicePublicUrl={"http://40.176.84.110"}
+          indigoServiceApiPath={env.NEXT_PUBLIC_INDIGO_API_PATH}
+          indigoServicePublicUrl={env.NEXT_PUBLIC_INDIGO_PUBLIC_URL}
         />
       </div>
     );

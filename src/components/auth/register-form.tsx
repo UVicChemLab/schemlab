@@ -1,6 +1,6 @@
 "use client";
 
-import * as z from "zod";
+import type * as z from "zod";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,14 +33,14 @@ import { Button } from "~/components/ui/button";
 import { FormError } from "~/components/ui/form-error";
 import { FormSucess } from "~/components/ui/form-success";
 import { register } from "~/actions/register";
-import { Memo, observer } from "@legendapp/state/react";
+import { Memo } from "@legendapp/state/react";
 import { observable, observe } from "@legendapp/state";
 import { getAllOrganizations, getAllRoles } from "~/server/db/calls/auth";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn, capitalize } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { type RoleCallReturn } from "~/server/db/calls/auth";
 import { type Organization } from "~/server/db/schema";
-import { Role, appName } from "~/lib/types";
+import { appName } from "~/lib/types";
 
 const RegisterForm = () => {
   const [success, setSuccess] = useState<string | undefined>();
@@ -60,7 +60,9 @@ const RegisterForm = () => {
       });
     };
 
-    fetchOrganizations();
+    fetchOrganizations().catch((e) => {
+      console.log("Error fetching organizations:", e);
+    });
   }, [organizations$, roles$]);
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
@@ -77,12 +79,14 @@ const RegisterForm = () => {
     setSuccess(undefined);
 
     startTransition(() => {
-      register(values).then((data) => {
-        observe(() => {
-          if (data.error) setError(() => data.error);
-          else if (data.sucess) setSuccess(() => data.sucess);
-        });
-      });
+      register(values)
+        .then((data) => {
+          observe(() => {
+            if (data.error) setError(() => data.error);
+            else if (data.sucess) setSuccess(() => data.sucess);
+          });
+        })
+        .catch(() => setError("Something went wrong!"));
     });
   };
 

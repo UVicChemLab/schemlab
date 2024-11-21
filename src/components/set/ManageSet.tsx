@@ -4,14 +4,7 @@ import React from "react";
 import ManageContainer from "../ui/manage-container";
 import { useToast } from "~/hooks/use-toast";
 import { useProfile } from "~/components/profile-provider";
-import { batch, observable } from "@legendapp/state";
-import {
-  observer,
-  useEffectOnce,
-  Memo,
-  useObserve,
-  useObservable,
-} from "@legendapp/state/react";
+import { observer, Memo, useObservable } from "@legendapp/state/react";
 import {
   Card,
   CardContent,
@@ -20,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { type Set, Organization } from "~/server/db/schema";
+import type { Set, Organization } from "~/server/db/schema";
 import { Button } from "~/components/ui/button";
 import { hasPermission } from "~/server/auth/permissions";
 import { deleteSetAction } from "~/actions/set";
@@ -43,22 +36,29 @@ const ManageSet = ({
 
   const deleteSet = (setId: number | undefined) => {
     if (!setId) return;
-    deleteSetAction(setId).then((res) => {
-      if (res?.success) {
-        const userSets = userSets$.get();
-        const setIdx = userSets.findIndex((set) => set.id === res.set?.id);
-        userSets$[setIdx]?.delete();
+    deleteSetAction(setId)
+      .then((res) => {
+        if (res?.success) {
+          const userSets = userSets$.get();
+          const setIdx = userSets.findIndex((set) => set.id === res.set?.id);
+          userSets$[setIdx]?.delete();
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message || "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
   };
 
   return (
@@ -74,7 +74,7 @@ const ManageSet = ({
                     <CardDescription>{set.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p>{set.time?.minutes || "0"}</p>
+                    <p>{set.time?.minutes ?? "0"}</p>
                     <p>
                       {
                         userOrgs$

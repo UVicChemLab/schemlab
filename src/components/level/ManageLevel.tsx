@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { type Level, Organization } from "~/server/db/schema";
+import type { Level, Organization } from "~/server/db/schema";
 import { Button } from "~/components/ui/button";
 import { hasPermission } from "~/server/auth/permissions";
 import { deleteLevelAction } from "~/actions/level";
@@ -36,24 +36,31 @@ const ManageLevel = ({
 
   const deleteSet = (levelId: number | undefined) => {
     if (!levelId) return;
-    deleteLevelAction(levelId).then((res) => {
-      if (res?.success) {
-        const userLevels = userLevels$.get();
-        const levelIdx = userLevels.findIndex(
-          (level) => level.id === res.level?.id,
-        );
-        userLevels$[levelIdx]?.delete();
+    deleteLevelAction(levelId)
+      .then((res) => {
+        if (res?.success) {
+          const userLevels = userLevels$.get();
+          const levelIdx = userLevels.findIndex(
+            (level) => level.id === res.level?.id,
+          );
+          userLevels$[levelIdx]?.delete();
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
   };
 
   return (

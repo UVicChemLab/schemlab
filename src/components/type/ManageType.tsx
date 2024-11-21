@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { type QuestionType, Organization } from "~/server/db/schema";
+import type { QuestionType, Organization } from "~/server/db/schema";
 import { Button } from "~/components/ui/button";
 import { hasPermission } from "~/server/auth/permissions";
 import { deleteTypeAction } from "~/actions/questionTypes";
@@ -36,24 +36,31 @@ const ManageType = ({
 
   const deleteSet = (typeId: number | undefined) => {
     if (!typeId) return;
-    deleteTypeAction(typeId).then((res) => {
-      if (res?.success) {
-        const userQTypes = userQuestionTypes$.get();
-        const typeIdx = userQTypes.findIndex(
-          (type) => type.id === res.type?.id,
-        );
-        userQuestionTypes$[typeIdx]?.delete();
+    deleteTypeAction(typeId)
+      .then((res) => {
+        if (res?.success) {
+          const userQTypes = userQuestionTypes$.get();
+          const typeIdx = userQTypes.findIndex(
+            (type) => type.id === res.type?.id,
+          );
+          userQuestionTypes$[typeIdx]?.delete();
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message || "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
   };
 
   return (

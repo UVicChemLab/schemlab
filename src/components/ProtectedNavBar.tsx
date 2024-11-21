@@ -3,12 +3,10 @@ import React, { useTransition } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
 import {
@@ -30,7 +28,7 @@ import { usePathname } from "next/navigation";
 import { capitalize } from "~/lib/utils";
 import { useSession } from "next-auth/react";
 import { appName } from "~/lib/types";
-import { Organization } from "~/server/db/schema";
+import type { Organization } from "~/server/db/schema";
 import { Memo, observer, useObservable } from "@legendapp/state/react";
 import { useProfile } from "~/components/profile-provider";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
@@ -70,7 +68,7 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
   };
 
   return (
-    <header className="sticky top-0 mb-10 w-full border-b">
+    <header className="sticky top-0 z-10 mb-10 w-full border-b">
       <div className="m-2 flex items-center justify-between px-16">
         <div className="flex items-center justify-start gap-4">
           <Memo>
@@ -197,6 +195,7 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
                 defaultValue={user$.currentOrgRole.organizationUniqueName.get()}
                 onValueChange={(value) => selectOrg(value)}
                 value={user$.currentOrgRole.organizationUniqueName.get()}
+                disabled={isPending}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select an organization">

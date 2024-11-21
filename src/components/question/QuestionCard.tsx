@@ -1,18 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import type { Question, Level, Set, QuestionType } from "~/server/db/schema";
-import { type Observable } from "@legendapp/state";
 import { QuestionSchema } from "~/lib/formSchemas";
-import {
-  observer,
-  Memo,
-  useObservable,
-  useEffectOnce,
-} from "@legendapp/state/react";
+import { useObservable, useEffectOnce } from "@legendapp/state/react";
 import { useToast } from "../../hooks/use-toast";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import TextEditor from "~/components/text-editor/TextEditor";
 import dynamic from "next/dynamic";
@@ -40,12 +34,11 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
 import { capitalize } from "~/lib/utils";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createQuestionAction, updateQuestionAction } from "~/actions/question";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
@@ -85,31 +78,38 @@ const QuestionCard = ({
   const questionForm = useForm<z.infer<typeof QuestionSchema>>({
     resolver: zodResolver(QuestionSchema),
     defaultValues: {
-      number: question?.number || 1,
-      question: question?.question || "",
-      answer: question?.answer || "",
-      level: question?.levelid.toString() || "",
-      type: question?.levelid.toString() || "",
-      set: question?.setid.toString() || "",
+      number: question?.number ?? 1,
+      question: question?.question ?? "",
+      answer: question?.answer ?? "",
+      level: question?.levelid.toString() ?? "",
+      type: question?.levelid.toString() ?? "",
+      set: question?.setid.toString() ?? "",
     },
   });
 
   function onSubmit(values: z.infer<typeof QuestionSchema>) {
     const questionAction =
       action === "update" ? updateQuestionAction : createQuestionAction;
-    questionAction(values, question?.id).then((res) => {
-      if (res?.success) {
+    questionAction(values, question?.id)
+      .then((res) => {
+        if (res?.success) {
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
     questionForm.reset();
   }
 
@@ -130,8 +130,27 @@ const QuestionCard = ({
                 const submitEvent = e.nativeEvent as unknown as SubmitEvent;
                 const submitButton = submitEvent.submitter as HTMLButtonElement;
                 if (submitButton?.name === "saveQuestionForm") {
-                  window.ketcher.getSmiles().then((smiles: string) => {
-                    if (!smiles || smiles === "") {
+                  // eslint-disable-next-line
+                  window.ketcher // eslint-disable-next-line
+                    .getSmiles() // eslint-disable-next-line
+                    .then((smiles: string) => {
+                      if (!smiles || smiles === "") {
+                        questionForm.setValue("answer", "");
+                        questionForm.setError(
+                          "answer",
+                          {
+                            message: "Answer is required",
+                          },
+                          { shouldFocus: true },
+                        );
+                      } else questionForm.setValue("answer", smiles);
+                      questionForm
+                        .handleSubmit(onSubmit)()
+                        .catch(() => {
+                          console.log("error");
+                        });
+                    }) // eslint-disable-next-line
+                    .catch(() => {
                       questionForm.setValue("answer", "");
                       questionForm.setError(
                         "answer",
@@ -140,9 +159,7 @@ const QuestionCard = ({
                         },
                         { shouldFocus: true },
                       );
-                    } else questionForm.setValue("answer", smiles);
-                    questionForm.handleSubmit(onSubmit)();
-                  });
+                    });
                 }
               }
             }}
@@ -173,7 +190,7 @@ const QuestionCard = ({
                       <FormLabel>Question Set</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={question?.setid.toString() || ""}
+                        defaultValue={question?.setid.toString() ?? ""}
                       >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
@@ -186,7 +203,7 @@ const QuestionCard = ({
                           {userSets$.get().map((set) => (
                             <SelectItem
                               key={set.id}
-                              value={set.id?.toString() || ""}
+                              value={set.id?.toString() ?? ""}
                             >
                               {capitalize(set.name)}
                             </SelectItem>
@@ -208,7 +225,7 @@ const QuestionCard = ({
                       <FormLabel>Question Type</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={question?.typeid.toString() || ""}
+                        defaultValue={question?.typeid.toString() ?? ""}
                       >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
@@ -222,7 +239,7 @@ const QuestionCard = ({
                             {userQTypes$.get().map((type) => (
                               <SelectItem
                                 key={type.id}
-                                value={type.id?.toString() || ""}
+                                value={type.id?.toString() ?? ""}
                               >
                                 {capitalize(type.name)}
                               </SelectItem>
@@ -245,7 +262,7 @@ const QuestionCard = ({
                       <FormLabel>Question Level</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={question?.levelid.toString() || ""}
+                        defaultValue={question?.levelid.toString() ?? ""}
                       >
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
@@ -259,7 +276,7 @@ const QuestionCard = ({
                             {userLevels$.get().map((level) => (
                               <SelectItem
                                 key={level.id}
-                                value={level.id?.toString() || ""}
+                                value={level.id?.toString() ?? ""}
                               >
                                 {capitalize(level.name)}
                               </SelectItem>
@@ -284,7 +301,7 @@ const QuestionCard = ({
                   <FormLabel>Question</FormLabel>
                   <FormControl>
                     <TextEditor
-                      initialContent={question?.question || ""}
+                      initialContent={question?.question ?? ""}
                       onChange={field.onChange}
                     />
                   </FormControl>
@@ -304,7 +321,7 @@ const QuestionCard = ({
                   <FormControl>
                     <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
                       <Sketcher
-                        initialContent={question?.answer || ""}
+                        initialContent={question?.answer ?? ""}
                         indigoServiceApiPath={indigoServiceApiPath}
                         indigoServicePublicUrl={indigoServicePublicUrl}
                       />

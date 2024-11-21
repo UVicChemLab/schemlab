@@ -1,6 +1,6 @@
 "use client";
 
-import * as z from "zod";
+import type * as z from "zod";
 import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -64,11 +64,15 @@ const LoginForm = () => {
             setShowTwoFactor(() => true);
           }
         })
-        .catch((e) => {
-          setError(() => e.message as string);
-          if (e.message === "NEXT_REDIRECT") {
-            setSuccess(() => "Redirecting...");
-            setError(() => "");
+        .catch((e: unknown) => {
+          if (e instanceof Error) {
+            setError(() => e.message);
+            if (e.message === "NEXT_REDIRECT") {
+              setSuccess(() => "Redirecting...");
+              setError(() => "");
+            }
+          } else {
+            setError(() => "An unknown error occurred.");
           }
         });
     });

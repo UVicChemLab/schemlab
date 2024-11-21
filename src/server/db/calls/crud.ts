@@ -14,8 +14,8 @@ import {
   sets,
   answers,
 } from "~/server/db/schema";
-import { between, max, min, sql, avg, count, eq, desc } from "drizzle-orm";
-import { Visibility, type QuestionTime } from "~/lib/types";
+import { eq } from "drizzle-orm";
+import { type Visibility, type QuestionTime } from "~/lib/types";
 
 /***********Question******* */
 
@@ -148,10 +148,11 @@ export const updateQuestion = async (
         message: `Error Updating Question ${number}!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Updating Question ${number}! ` + error,
+      message: `Error Updating Question ${number}!. Error: ${errorMessage}`,
     };
   }
 };
@@ -174,10 +175,11 @@ export const deleteQuestion = async (id: number) => {
         message: `Question with id: ${id} not found!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Deleting Question with id: ${id}! ` + error,
+      message: `Error Deleting Question with id: ${id}!. Error: ${errorMessage}`,
     };
   }
 };
@@ -268,7 +270,8 @@ export const createSet = async (
         };
       }
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     const setExist = await db.query.sets.findFirst({
       where: (sets, { eq, and }) =>
         and(eq(sets.organizationId, organizationId), eq(sets.name, name)),
@@ -277,12 +280,12 @@ export const createSet = async (
     if (setExist) {
       return {
         success: false,
-        message: `Question Set ${name} already exist ` + error,
+        message: `Question Set ${name} already exist. Error: ${errorMessage}`,
       };
     } else {
       return {
         success: false,
-        message: `Error Creating Question Set ${name}! ` + error,
+        message: `Error Creating Question Set ${name}! Error: ${errorMessage}`,
       };
     }
   }
@@ -315,10 +318,11 @@ export const updateSet = async (
         message: `Error Updating Question Set ${name}!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Updating Question Set ${name}! ` + error,
+      message: `Error Updating Question Set ${name}! Error: ${errorMessage}`,
     };
   }
 };
@@ -338,10 +342,11 @@ export const deleteSet = async (id: number) => {
         message: `Question Set with id: ${id} not found!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Deleting Question Set with id: ${id}! ` + error,
+      message: `Error Deleting Question Set with id: ${id}! Error: ${errorMessage}`,
     };
   }
 };
@@ -409,7 +414,8 @@ export const createType = async (
         };
       }
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     const typeExist = await db.query.types.findFirst({
       where: (types, { eq, and }) =>
         and(eq(types.organizationId, organizationId), eq(types.name, name)),
@@ -418,12 +424,12 @@ export const createType = async (
     if (typeExist) {
       return {
         success: false,
-        message: `Question Type ${name} already exist` + error,
+        message: `Question Type ${name} already exist. Error: ${errorMessage}`,
       };
     } else {
       return {
         success: false,
-        message: `Error Creating Question Type ${name}!` + error,
+        message: `Error Creating Question Type ${name}! Error: ${errorMessage}`,
       };
     }
   }
@@ -455,10 +461,11 @@ export const updateType = async (
         message: `Error Updating Question Type ${name}!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Updating Question Type ${name}!` + error,
+      message: `Error Updating Question Type ${name}! Error: ${errorMessage}`,
     };
   }
 };
@@ -478,10 +485,11 @@ export const deleteType = async (id: number) => {
         message: `Question Type with id: ${id} not found!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Deleting Question Type with id: ${id}! ` + error,
+      message: `Error Deleting Question Type with id: ${id}! Error: ${errorMessage}`,
     };
   }
 };
@@ -549,7 +557,8 @@ export const createLevel = async (
         };
       }
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     const levelExist = await db.query.levels.findFirst({
       where: (levels, { eq, and }) =>
         and(eq(levels.organizationId, organizationId), eq(levels.name, name)),
@@ -558,12 +567,12 @@ export const createLevel = async (
     if (levelExist) {
       return {
         success: false,
-        message: `Level ${name} already exist` + error,
+        message: `Level ${name} already exist. Error: ${errorMessage}`,
       };
     } else {
       return {
         success: false,
-        message: `Error Creating Level ${name}!` + error,
+        message: `Error Creating Level ${name}! Error: ${errorMessage}`,
       };
     }
   }
@@ -595,10 +604,11 @@ export const updateLevel = async (
         message: `Error Updating Level ${name}!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Updating Level ${name}!` + error,
+      message: `Error Updating Level ${name}! Error: ${errorMessage}`,
     };
   }
 };
@@ -618,10 +628,11 @@ export const deleteLevel = async (id: number) => {
         message: `Level with id: ${id} not found!`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Error Deleting Level with id: ${id}! ` + error,
+      message: `Error Deleting Level with id: ${id}! Error: ${errorMessage}`,
     };
   }
 };

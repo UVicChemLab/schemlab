@@ -1,6 +1,6 @@
 "use server";
 
-import * as z from "zod";
+import type * as z from "zod";
 import bcrypt from "bcryptjs";
 
 import { getUserByEmail, changePassword } from "~/server/db/calls/auth";

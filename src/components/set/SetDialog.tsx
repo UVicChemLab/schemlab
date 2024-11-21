@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -33,7 +32,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { capitalize } from "~/lib/utils";
-import { z } from "zod";
+import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "../../hooks/use-toast";
@@ -42,8 +41,7 @@ import { type Organization, type Set } from "~/server/db/schema";
 import { Visibility } from "~/lib/types";
 import { createSetAction, updateSetAction } from "~/actions/set";
 import { type Observable } from "@legendapp/state";
-import { useProfile } from "../profile-provider";
-import { observer, Memo } from "@legendapp/state/react";
+import { observer } from "@legendapp/state/react";
 
 const SetDialog = ({
   children,
@@ -53,51 +51,61 @@ const SetDialog = ({
   userOrgs$,
 }: {
   children: React.ReactNode;
-  action: string;
+  action: "create" | "update";
   set?: Set;
   userSets$: Observable<Set[]>;
   userOrgs$: Observable<Organization[]>;
 }) => {
-  const user$ = useProfile();
   const { toast } = useToast();
   const setForm = useForm<z.infer<typeof SetSchema>>({
     resolver: zodResolver(SetSchema),
     defaultValues: {
-      id: set?.id || 0,
-      name: set?.name || "",
-      desc: set?.desc || "",
-      time: set?.time || { hours: 0, minutes: 0, seconds: 0 },
-      visibility: set?.visibility || Visibility.PUBLIC,
+      id: set?.id ?? 0,
+      name: set?.name ?? "",
+      desc: set?.desc ?? "",
+      time: set?.time ?? { hours: 0, minutes: 0, seconds: 0 },
+      visibility: set?.visibility ?? Visibility.PUBLIC,
       organization:
         userOrgs$.peek().find((org) => org.id === set?.organizationId)
-          ?.uniqueName || "",
+          ?.uniqueName ?? "",
     },
   });
 
   function onSubmit(values: z.infer<typeof SetSchema>) {
     const setAction = action === "create" ? createSetAction : updateSetAction;
-    setAction(values).then((res) => {
-      if (res?.success) {
-        if (action === "create") {
-          userSets$.push(res.set as Set);
-        } else if (action === "update") {
-          if (res.set) {
-            const userSets = userSets$.get();
-            const setIdx = userSets.findIndex((set) => set.id === res.set?.id);
-            userSets$[setIdx]?.set(res.set);
+    setAction(values)
+      .then((res) => {
+        if (res?.success) {
+          if (action !== "update") {
+            if (res.set) {
+              userSets$.push(res.set);
+            }
+          } else {
+            if (res.set) {
+              const userSets = userSets$.get();
+              const setIdx = userSets.findIndex(
+                (set) => set.id === res.set?.id,
+              );
+              userSets$[setIdx]?.set(res.set);
+            }
           }
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
         }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
     setForm.reset();
   }
 
@@ -108,7 +116,7 @@ const SetDialog = ({
         <DialogHeader>
           <DialogTitle>{capitalize(action)} Question Set</DialogTitle>
           <DialogDescription>
-            Please Click save when you're done.
+            {"Please Click save when you're done."}
           </DialogDescription>
         </DialogHeader>
         <Form {...setForm}>
@@ -218,7 +226,7 @@ const SetDialog = ({
                           {userOrgs$.get().map((org) => (
                             <SelectItem
                               key={org.id}
-                              value={org.id?.toString() || ""}
+                              value={org.id?.toString() ?? ""}
                             >
                               {org.uniqueName}
                             </SelectItem>

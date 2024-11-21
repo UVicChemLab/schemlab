@@ -1,6 +1,6 @@
 "use client";
 
-import * as z from "zod";
+import type * as z from "zod";
 import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -44,10 +44,12 @@ const NewPasswordForm = () => {
     setSuccess("");
 
     startTransition(() => {
-      newPassword(values, token).then((data) => {
-        setError(data?.error);
-        setSuccess(data?.success);
-      });
+      newPassword(values, token)
+        .then((data) => {
+          setError(data?.error);
+          setSuccess(data?.success);
+        })
+        .catch(() => setError("Something went wrong!"));
     });
   };
 

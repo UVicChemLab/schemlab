@@ -1,7 +1,7 @@
 "use server";
 
-import * as z from "zod";
-import { OrganizationSchema } from "~/lib/formSchemas";
+import type * as z from "zod";
+import type { OrganizationSchema } from "~/lib/formSchemas";
 import {
   createOrganization,
   getOrgByUniqueName,

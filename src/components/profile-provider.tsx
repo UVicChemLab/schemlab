@@ -25,11 +25,9 @@ export const ProfileProvider = ({
   children: React.ReactNode;
   initialValue?: ExtendedUser;
 }) => {
-  let profile: Observable<ExtendedUser>;
-  if (initialValue) profile = useObservable<ExtendedUser>(initialValue);
-  else profile = profileState$;
+  const profile$ = useObservable<ExtendedUser>(initialValue);
   return (
-    <ProfileContext.Provider value={profile}>
+    <ProfileContext.Provider value={initialValue ? profile$ : profileState$}>
       {children}
     </ProfileContext.Provider>
   );

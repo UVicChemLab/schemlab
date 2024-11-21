@@ -1,7 +1,6 @@
 "use server";
 
-import * as z from "zod";
-
+import type * as z from "zod";
 import { ResetSchema } from "~/lib/formSchemas";
 import { getUserByEmail } from "~/server/db/calls/auth";
 import { sendPasswordResetEmail } from "~/lib/mail";

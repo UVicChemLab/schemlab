@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useSession } from "next-auth/react";
-import * as z from "zod";
+import type * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProfileSchema } from "~/lib/formSchemas";

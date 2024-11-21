@@ -1,19 +1,13 @@
 "use server";
 
-import * as z from "zod";
-import { SetSchema } from "~/lib/formSchemas";
-import {
-  getSetsByOrgUniqueName,
-  createSet,
-  updateSet,
-  deleteSet,
-} from "~/server/db/calls/crud";
+import type * as z from "zod";
+import type { SetSchema } from "~/lib/formSchemas";
+import { createSet, updateSet, deleteSet } from "~/server/db/calls/crud";
 import { getCurrentUser } from "./profile";
-import { getOrgByUniqueName } from "~/server/db/calls/auth";
 
 export const createSetAction = async (
   values: z.infer<typeof SetSchema>,
-  id?: number,
+  _?: number,
 ) => {
   const user = await getCurrentUser();
   if (user) {

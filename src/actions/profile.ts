@@ -1,8 +1,8 @@
 "use server";
 
-import * as z from "zod";
+import type * as z from "zod";
 import bcrypt from "bcryptjs";
-import { ProfileSchema } from "~/lib/formSchemas";
+import type { ProfileSchema } from "~/lib/formSchemas";
 import {
   getUserByEmail,
   getUserById,
@@ -12,7 +12,6 @@ import {
 import { generateVerificationToken } from "~/lib/tokens";
 import { sendVerificationEmail } from "~/lib/mail";
 import { auth } from "~/server/auth";
-import type { ExtendedUser } from "~/lib/types";
 
 export const getCurrentUser = async () => {
   const session = await auth();

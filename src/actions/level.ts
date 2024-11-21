@@ -1,19 +1,14 @@
 "use server";
 
-import * as z from "zod";
-import { LevelSchema } from "~/lib/formSchemas";
-import {
-  getSetsByOrgUniqueName,
-  createLevel,
-  updateLevel,
-  deleteLevel,
-} from "~/server/db/calls/crud";
+import type * as z from "zod";
+import type { LevelSchema } from "~/lib/formSchemas";
+import { createLevel, updateLevel, deleteLevel } from "~/server/db/calls/crud";
 import { getCurrentUser } from "./profile";
 import { getOrgByUniqueName } from "~/server/db/calls/auth";
 
 export const createLevelAction = async (
   values: z.infer<typeof LevelSchema>,
-  id?: number,
+  _?: number,
 ) => {
   const user = await getCurrentUser();
   if (user) {

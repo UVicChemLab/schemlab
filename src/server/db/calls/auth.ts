@@ -1,16 +1,16 @@
 "use server";
 
 import { db } from "~/server/db";
-import { eq, and, count, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   users,
   accounts,
   roles,
   organizations,
   userOrganizationRoles,
-  Organization,
+  type Organization,
 } from "~/server/db/schema";
-import { Role, appName, type OrgRole } from "~/lib/types";
+import { Role, appName } from "~/lib/types";
 
 /*****************User*********** */
 export const getUserByEmail = async (email: string) => {
@@ -230,17 +230,17 @@ export const createOrganization = async (
     }
   } catch (e) {
     const organization = await getOrgByUniqueName(uniqueName);
+    const errorMessage = e instanceof Error ? e.message : String(e);
     if (organization) {
       await deleteOrganization(organization.id);
       return {
         success: false,
-        message:
-          `Organization with uniqueName ${uniqueName} already exists ` + e,
+        message: `Organization with uniqueName ${uniqueName} already exists. Error: ${errorMessage}`,
       };
     } else {
       return {
         success: false,
-        message: `Error Creating Organization ${uniqueName} ` + e,
+        message: `Error Creating Organization ${uniqueName}. Error: ${errorMessage}`,
       };
     }
   }
@@ -274,9 +274,10 @@ export const updateOrganization = async (
       };
     }
   } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Organization with uniqueName ${uniqueName} already exists ` + e,
+      message: `Organization with uniqueName ${uniqueName} already exists. Error: ${errorMessage}`,
     };
   }
 };
@@ -300,10 +301,11 @@ export const deleteOrganization = async (id: number) => {
         message: `Organization with id: ${id} not found`,
       };
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     return {
       success: false,
-      message: `Erro Deleting Organization with id: ${id} ` + error,
+      message: `Erro Deleting Organization with id: ${id}. Error: ${errorMessage}`,
     };
   }
 };
@@ -332,11 +334,11 @@ export const createUserOrganizationRole = async (
   const organizationId = await db
     .select({ id: organizations.id })
     .from(organizations)
-    .where(eq(organizations.uniqueName, organizationUniqueName || appName));
+    .where(eq(organizations.uniqueName, organizationUniqueName ?? appName));
   const roleId = await db
     .select({ id: roles.id })
     .from(roles)
-    .where(eq(roles.name, roleName || Role.STUDENT));
+    .where(eq(roles.name, roleName ?? Role.STUDENT));
 
   if (organizationId[0]?.id && roleId[0]?.id) {
     const org_id = organizationId[0].id;
@@ -369,7 +371,7 @@ export const createUserOrganizationRole = async (
   }
 };
 
-const getAllAdmins = async () => {
+export const getAllAdmins = async () => {
   return await db
     .select({ userId: userOrganizationRoles.userId, roleId: roles.id })
     .from(userOrganizationRoles)

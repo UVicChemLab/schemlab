@@ -1,6 +1,6 @@
 "use server";
 
-import * as z from "zod";
+import type * as z from "zod";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { signIn } from "~/server/auth";

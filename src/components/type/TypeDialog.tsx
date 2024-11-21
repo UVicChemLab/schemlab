@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -33,17 +32,17 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { capitalize } from "~/lib/utils";
-import { z } from "zod";
+import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "../../hooks/use-toast";
 import { QuestionTypeSchema } from "~/lib/formSchemas";
-import { QuestionType, type Organization, type Set } from "~/server/db/schema";
+import type { QuestionType, Organization } from "~/server/db/schema";
 import { Visibility } from "~/lib/types";
 import { createTypeAction, updateTypeAction } from "~/actions/questionTypes";
 import { type Observable } from "@legendapp/state";
 import { useProfile } from "../profile-provider";
-import { observer, Memo } from "@legendapp/state/react";
+import { observer } from "@legendapp/state/react";
 
 const TypeDialog = ({
   children,
@@ -53,7 +52,7 @@ const TypeDialog = ({
   userOrgs$,
 }: {
   children: React.ReactNode;
-  action: string;
+  action: "create" | "update";
   qType?: QuestionType;
   userQuestionTypes$: Observable<QuestionType[]>;
   userOrgs$: Observable<Organization[]>;
@@ -63,40 +62,49 @@ const TypeDialog = ({
   const qTypeForm = useForm<z.infer<typeof QuestionTypeSchema>>({
     resolver: zodResolver(QuestionTypeSchema),
     defaultValues: {
-      id: qType?.id || 0,
-      name: qType?.name || "",
-      desc: qType?.desc || "",
-      visibility: qType?.visibility || Visibility.PUBLIC,
+      id: qType?.id ?? 0,
+      name: qType?.name ?? "",
+      desc: qType?.desc ?? "",
+      visibility: qType?.visibility ?? Visibility.PUBLIC,
     },
   });
 
   function onSubmit(values: z.infer<typeof QuestionTypeSchema>) {
     const qTypeAction =
       action === "create" ? createTypeAction : updateTypeAction;
-    qTypeAction(values).then((res) => {
-      if (res?.success) {
-        if (action === "create") {
-          userQuestionTypes$.push(res.type as QuestionType);
-        } else if (action === "update") {
-          if (res.type) {
-            const userQuestionTypes = userQuestionTypes$.get();
-            const qTypeIdx = userQuestionTypes.findIndex(
-              (type) => type.id === res.type?.id,
-            );
-            userQuestionTypes$[qTypeIdx]?.set(res.type);
+    qTypeAction(values)
+      .then((res) => {
+        if (res?.success) {
+          if (action !== "update") {
+            if (res.type) {
+              userQuestionTypes$.push(res.type);
+            }
+          } else {
+            if (res.type) {
+              const userQuestionTypes = userQuestionTypes$.get();
+              const qTypeIdx = userQuestionTypes.findIndex(
+                (type) => type.id === res.type?.id,
+              );
+              userQuestionTypes$[qTypeIdx]?.set(res.type);
+            }
           }
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
         }
+      })
+      .catch(() => {
         toast({
-          title: res.message,
+          title: "Something went wrong",
           description: new Date().toISOString(),
         });
-      } else {
-        toast({
-          title: res?.message || "Something went wrong",
-          description: new Date().toISOString(),
-        });
-      }
-    });
+      });
     qTypeForm.reset();
   }
 
@@ -107,7 +115,7 @@ const TypeDialog = ({
         <DialogHeader>
           <DialogTitle>{capitalize(action)} Question Type</DialogTitle>
           <DialogDescription>
-            Please Click save when you're done.
+            {"Please Click save when you're done."}
           </DialogDescription>
         </DialogHeader>
         <Form {...qTypeForm}>

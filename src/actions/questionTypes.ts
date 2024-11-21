@@ -1,19 +1,14 @@
 "use server";
 
-import * as z from "zod";
-import { QuestionTypeSchema } from "~/lib/formSchemas";
-import {
-  getSetsByOrgUniqueName,
-  createType,
-  updateType,
-  deleteType,
-} from "~/server/db/calls/crud";
+import type * as z from "zod";
+import type { QuestionTypeSchema } from "~/lib/formSchemas";
+import { createType, updateType, deleteType } from "~/server/db/calls/crud";
 import { getCurrentUser } from "./profile";
 import { getOrgByUniqueName } from "~/server/db/calls/auth";
 
 export const createTypeAction = async (
   values: z.infer<typeof QuestionTypeSchema>,
-  id?: number,
+  _?: number,
 ) => {
   const user = await getCurrentUser();
   if (user) {
