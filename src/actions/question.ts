@@ -11,9 +11,7 @@ import {
 } from "~/server/db/calls/crud";
 
 function getQuestionDescription(question: string) {
-  const tempElement = document.createElement("div");
-  tempElement.innerHTML = question;
-  return (tempElement.innerText ?? tempElement.textContent ?? "") + "...";
+  return question.replace(/<\/?[^>]+(>|$)/g, "") + "...";
 }
 
 export async function createQuestionAction(
