@@ -19,13 +19,19 @@ export const RegisterSchema = z.object({
     .string()
     .min(8, { message: "Password must be at least 8 characters" })
     .max(20, { message: "Password cannot exceed 20 characters" })
-    .regex(
-      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      {
-        message:
-          "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character",
-      },
-    ),
+    .refine((val) => /[A-Z]/.test(val), {
+      message: "Password must contain at least one uppercase letter.",
+    })
+    .refine((val) => /[a-z]/.test(val), {
+      message: "Password must contain at least one lowercase letter.",
+    })
+    .refine((val) => /\d/.test(val), {
+      message: "Password must contain at least one digit.",
+    })
+    .refine((val) => /[@$!%*?&]/.test(val), {
+      message:
+        "Password must contain at least one special character (@$!%*?&).",
+    }),
   name: z.string().min(1, {
     message: "Name is required",
   }),

@@ -11,15 +11,15 @@ import {
 } from "~/server/db/calls/crud";
 
 function getQuestionDescription(question: string) {
-  const truncatedText = question.slice(3, 20) + "...";
-  return truncatedText.replace(/<\/?[^>]+(>|$)/g, "");
+  const tempElement = document.createElement("div");
+  tempElement.innerHTML = question;
+  return (tempElement.innerText ?? tempElement.textContent ?? "") + "...";
 }
 
 export async function createQuestionAction(
   values: z.infer<typeof QuestionSchema>,
   _?: number,
 ) {
-  console.log(values);
   const user = await getCurrentUser();
   if (user) {
     let questionNumber: number;
