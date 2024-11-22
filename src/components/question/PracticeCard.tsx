@@ -30,7 +30,6 @@ import dynamic from "next/dynamic";
 import parse from "html-react-parser";
 import { useObservable, observer } from "@legendapp/state/react";
 import Confetti from "react-confetti";
-import { ToastAction } from "~/components/ui/toast";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,

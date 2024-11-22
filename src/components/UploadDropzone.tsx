@@ -30,6 +30,7 @@ import { type Editor } from "@tiptap/react";
 import { useToast } from "~/hooks/use-toast";
 import { formatBytes } from "~/lib/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
+import Image from "next/image";
 
 const UploadDropzone = ({ editor }: { editor: Editor }) => {
   const [files, setFiles] = useState<File[]>([]);
@@ -42,8 +43,13 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
 
   const { startUpload, routeConfig } = useUploadThing("imageUploader", {
     onClientUploadComplete: (images) => {
-      images.map((image) => {
-        editor.chain().focus().setImage({ src: image.url }).enter().run();
+      images.forEach((image) => {
+        editor
+          .chain()
+          .focus()
+          .setImage({ src: image.url })
+          .insertContent(`<br>`)
+          .run();
       });
       toast({
         title: "Images uploaded successfully",
@@ -119,7 +125,9 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
         <DialogFooter>
           <DialogClose asChild>
             {files.length > 0 && (
-              <Button onClick={() => startUpload(files)}>
+              <Button
+                onClick={() => startUpload(files).then(() => setFiles([]))}
+              >
                 Upload {files.length} files
               </Button>
             )}
