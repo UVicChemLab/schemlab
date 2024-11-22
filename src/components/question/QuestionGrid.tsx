@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import Link from "next/link";
-import parse from "html-react-parser";
 
 const QuestionGrid = ({ questions }: { questions: Question[] }) => {
   return (
@@ -25,7 +24,7 @@ const QuestionGrid = ({ questions }: { questions: Question[] }) => {
           <Card>
             <CardHeader>
               <CardTitle>{question.number}</CardTitle>
-              <CardDescription>{parse(question.desc ?? "")}</CardDescription>
+              <CardDescription>{question.desc ?? ""}</CardDescription>
             </CardHeader>
             <CardContent></CardContent>
             <CardFooter></CardFooter>

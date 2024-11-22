@@ -20,7 +20,6 @@ import { Pencil, Trash, Plus } from "lucide-react";
 import Link from "next/link";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 import { deleteQuestionAction } from "~/actions/question";
-import parse from "html-react-parser";
 
 const ManageQuestion = ({
   id,
@@ -72,9 +71,7 @@ const ManageQuestion = ({
                 <Card key={question.id}>
                   <CardHeader>
                     <CardTitle>{question.number}</CardTitle>
-                    <CardDescription>
-                      {question.desc ? parse(question.desc) : ""}
-                    </CardDescription>
+                    <CardDescription>{question.desc ?? ""}</CardDescription>
                   </CardHeader>
                   <CardContent></CardContent>
                   <CardFooter>
