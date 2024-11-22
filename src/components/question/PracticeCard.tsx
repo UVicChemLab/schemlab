@@ -28,6 +28,9 @@ import { AnswerSchema } from "~/lib/formSchemas";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import parse from "html-react-parser";
+import { useObservable, observer } from "@legendapp/state/react";
+import Confetti from "react-confetti";
+import { ToastAction } from "~/components/ui/toast";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
@@ -49,6 +52,7 @@ const PracticeCard = ({
       answer: "",
     },
   });
+  const wrongCount$ = useObservable<number>(0);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -57,8 +61,20 @@ const PracticeCard = ({
       toast({
         title: "Correct Answer!",
         description: "You got it right!",
+        action: <Confetti numberOfPieces={150} opacity={0.7} />,
+      });
+    } else if (wrongCount$.get() >= 4) {
+      // eslint-disable-next-line
+      window.ketcher.editor.clear();
+      // eslint-disable-next-line
+      window.ketcher.setMolecule(question.answer);
+      toast({
+        variant: "destructive",
+        title: "You have reached the maximum number of attempts!",
+        description: "Check the solution in the Editor",
       });
     } else {
+      wrongCount$.set((prev) => prev + 1);
       toast({
         title: "Wrong Answer!",
         description: "Try Again!",
@@ -153,4 +169,4 @@ const PracticeCard = ({
   );
 };
 
-export default PracticeCard;
+export default observer(PracticeCard);
