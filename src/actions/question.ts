@@ -19,7 +19,6 @@ export async function createQuestionAction(
   values: z.infer<typeof QuestionSchema>,
   _?: number,
 ) {
-  console.log(values);
   const user = await getCurrentUser();
   if (user) {
     let questionNumber: number;

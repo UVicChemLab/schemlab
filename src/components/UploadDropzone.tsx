@@ -14,11 +14,22 @@ import {
   DialogFooter,
   DialogHeader,
 } from "./ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { Button } from "./ui/button";
 import { ImagePlus } from "lucide-react";
 import { Input } from "./ui/input";
 import { type Editor } from "@tiptap/react";
 import { useToast } from "~/hooks/use-toast";
+import { formatBytes } from "~/lib/utils";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 const UploadDropzone = ({ editor }: { editor: Editor }) => {
   const [files, setFiles] = useState<File[]>([]);
@@ -32,15 +43,15 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
   const { startUpload, routeConfig } = useUploadThing("imageUploader", {
     onClientUploadComplete: (images) => {
       images.map((image) => {
-        editor.chain().focus().setImage({ src: image.url }).run();
-        editor.chain().focus().enter().run();
+        editor.chain().focus().setImage({ src: image.url }).enter().run();
       });
       toast({
         title: "Images uploaded successfully",
         description: "Images uploaded successfully",
       });
     },
-    onUploadError: () => {
+    onUploadError: (e) => {
+      console.log(e);
       toast({
         title: "Something went wrong",
         description: "Images could not be uploaded",
@@ -77,19 +88,42 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
           <DialogTitle>Upload Image(s)</DialogTitle>
           <DialogDescription>Dropzone for uploading images</DialogDescription>
         </DialogHeader>
+        {files.length > 0 && (
+          <Table>
+            <TableCaption>Images Ready for Upload</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="">Image Name</TableHead>
+                <TableHead className="text-right">Size</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {files.map((file) => (
+                <TableRow key={file.name}>
+                  <TableCell className="font-medium">{file.name}</TableCell>
+                  <TableCell className="text-right">
+                    {formatBytes(file.size)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
         <div
           {...getRootProps()}
-          className="flex min-h-[40vh] items-center justify-center rounded-md border-2 border-dashed p-5"
+          className="flex min-h-[20vh] cursor-pointer items-center justify-center rounded-md border-2 border-dashed p-5"
         >
           <Input {...getInputProps()} />
           Drop files here!
         </div>
         <DialogFooter>
-          {files.length > 0 && (
-            <Button onClick={() => startUpload(files)}>
-              Upload {files.length} files
-            </Button>
-          )}
+          <DialogClose asChild>
+            {files.length > 0 && (
+              <Button onClick={() => startUpload(files)}>
+                Upload {files.length} files
+              </Button>
+            )}
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
