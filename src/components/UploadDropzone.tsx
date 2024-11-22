@@ -43,12 +43,12 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
 
   const { startUpload, routeConfig } = useUploadThing("imageUploader", {
     onClientUploadComplete: (images) => {
+      editor.commands.focus("end");
       images.forEach((image) => {
         editor
           .chain()
-          .focus()
-          .setImage({ src: image.url })
-          .insertContent(`<br>`)
+          .insertContent(`<img src="${image.url}" /><br>`)
+          .focus("end")
           .run();
       });
       toast({

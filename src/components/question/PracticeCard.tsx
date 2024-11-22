@@ -28,7 +28,8 @@ import { AnswerSchema } from "~/lib/formSchemas";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import parse from "html-react-parser";
-import { useObservable, observer } from "@legendapp/state/react";
+import { useObservable, observer, Memo } from "@legendapp/state/react";
+import { observe } from "@legendapp/state";
 import Confetti from "react-confetti";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
@@ -73,7 +74,6 @@ const PracticeCard = ({
         description: "Check the solution in the Editor",
       });
     } else {
-      wrongCount$.set((prev) => prev + 1);
       toast({
         title: "Wrong Answer!",
         description: "Try Again!",
@@ -90,79 +90,94 @@ const PracticeCard = ({
       </CardHeader>
       <CardContent>
         {parse(question.question ?? "")}
-        <Form {...answerForm}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (e.type === "submit") {
-                const submitEvent = e.nativeEvent as unknown as SubmitEvent;
-                const submitButton = submitEvent.submitter as HTMLButtonElement;
-                if (submitButton?.name === "saveAnswerForm") {
-                  // eslint-disable-next-line
-                  window.ketcher // eslint-disable-next-line
-                    .getSmiles() // eslint-disable-next-line
-                    .then((smiles: string) => {
-                      if (!smiles || smiles === "") {
-                        answerForm.setValue("answer", "");
-                        answerForm.setError(
-                          "answer",
-                          {
-                            message: "Answer is required",
-                          },
-                          { shouldFocus: true },
-                        );
-                      } else answerForm.setValue("answer", smiles);
-                      answerForm
-                        .handleSubmit(onSubmit)()
+        <Memo>
+          {() => (
+            <Form {...answerForm}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (e.type === "submit") {
+                    const submitEvent = e.nativeEvent as unknown as SubmitEvent;
+                    const submitButton =
+                      submitEvent.submitter as HTMLButtonElement;
+                    if (submitButton?.name === "saveAnswerForm") {
+                      // eslint-disable-next-line
+                      window.ketcher // eslint-disable-next-line
+                        .getSmiles() // eslint-disable-next-line
+                        .then((smiles: string) => {
+                          if (!smiles || smiles === "") {
+                            answerForm.setValue("answer", "");
+                            answerForm.setError(
+                              "answer",
+                              {
+                                message: "Answer is required",
+                              },
+                              { shouldFocus: true },
+                            );
+                          } else {
+                            answerForm.setValue("answer", smiles);
+                            wrongCount$.set((prev) => prev + 1);
+                            answerForm
+                              .handleSubmit(onSubmit)()
+                              .catch(() => {
+                                console.log("error");
+                              });
+                          }
+                        }) // eslint-disable-next-line
                         .catch(() => {
-                          console.log("error");
+                          answerForm.setValue("answer", "");
+                          answerForm.setError(
+                            "answer",
+                            {
+                              message: "Answer is required",
+                            },
+                            { shouldFocus: true },
+                          );
                         });
-                    }) // eslint-disable-next-line
-                    .catch(() => {
-                      answerForm.setValue("answer", "");
-                      answerForm.setError(
-                        "answer",
-                        {
-                          message: "Answer is required",
-                        },
-                        { shouldFocus: true },
-                      );
-                    });
-                }
-              }
-            }}
-          >
-            {/************Answer******** */}
-            <FormField
-              control={answerForm.control}
-              name="answer"
-              render={() => (
-                <FormItem className="m-4 mt-8">
-                  <FormLabel>Answer</FormLabel>
-                  <FormControl>
-                    <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
-                      <Sketcher
-                        initialContent={""}
-                        indigoServiceApiPath={indigoServiceApiPath}
-                        indigoServicePublicUrl={indigoServicePublicUrl}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>Type your answer here</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <CardFooter className="flex justify-end gap-4">
-              <Button variant="outline" onClick={() => router.push("/home")}>
-                Cancel
-              </Button>
-              <Button type="submit" name="saveAnswerForm">
-                Submit
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
+                    }
+                  }
+                }}
+              >
+                {/************Answer******** */}
+                <FormField
+                  control={answerForm.control}
+                  name="answer"
+                  render={() => (
+                    <FormItem className="m-4 mt-8">
+                      <FormLabel>Answer</FormLabel>
+                      <FormControl>
+                        <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
+                          <Sketcher
+                            initialContent={""}
+                            indigoServiceApiPath={indigoServiceApiPath}
+                            indigoServicePublicUrl={indigoServicePublicUrl}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>Type your answer here</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <CardFooter className="flex justify-end gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/home")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    name="saveAnswerForm"
+                    hidden={wrongCount$.get() >= 4}
+                  >
+                    Submit
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
+          )}
+        </Memo>
       </CardContent>
     </Card>
   );
