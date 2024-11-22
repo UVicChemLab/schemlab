@@ -3,7 +3,7 @@
 import React from "react";
 import type { Question, Level, Set, QuestionType } from "~/server/db/schema";
 import { QuestionSchema } from "~/lib/formSchemas";
-import { useObservable, useEffectOnce } from "@legendapp/state/react";
+import { useObservable } from "@legendapp/state/react";
 import { useToast } from "../../hooks/use-toast";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -38,8 +38,9 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { capitalize } from "~/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createQuestionAction, updateQuestionAction } from "~/actions/question";
+import { useRouter } from "next/navigation";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
@@ -65,20 +66,13 @@ const QuestionCard = ({
   const userSets$ = useObservable<Set[]>(sets);
   const userQTypes$ = useObservable<QuestionType[]>(qTypes);
   const userLevels$ = useObservable<Level[]>(levels);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const action = searchParams.get("action");
-  const params = new URLSearchParams(searchParams.toString());
-  params.set("api_path", indigoServicePublicUrl + indigoServiceApiPath);
-
-  useEffectOnce(() => {
-    // router.push(`?${params.toString()}`);
-  });
-
+  const router = useRouter();
   const questionForm = useForm<z.infer<typeof QuestionSchema>>({
     resolver: zodResolver(QuestionSchema),
     defaultValues: {
-      number: question?.number ?? 1,
+      number: question?.number.toString() ?? "",
       question: question?.question ?? "",
       answer: question?.answer ?? "",
       level: question?.levelid.toString() ?? "",
@@ -170,10 +164,10 @@ const QuestionCard = ({
                 control={questionForm.control}
                 name="number"
                 render={({ field }) => (
-                  <FormItem className="mt-4">
+                  <FormItem className="mt-4" hidden={action === "create"}>
                     <FormLabel>Question Number</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="1" {...field} />
+                      <Input type="number" placeholder={"1"} {...field} />
                     </FormControl>
                     <FormDescription />
                     <FormMessage />
@@ -333,7 +327,9 @@ const QuestionCard = ({
               )}
             />
             <CardFooter className="flex justify-end gap-4">
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" onClick={() => router.push("/home")}>
+                Cancel
+              </Button>
               <Button type="submit" name="saveQuestionForm">
                 Submit
               </Button>

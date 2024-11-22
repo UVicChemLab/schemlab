@@ -66,8 +66,10 @@ const SetDialog = ({
       time: set?.time ?? { hours: 0, minutes: 0, seconds: 0 },
       visibility: set?.visibility ?? Visibility.PUBLIC,
       organization:
-        userOrgs$.peek().find((org) => org.id === set?.organizationId)
-          ?.uniqueName ?? "",
+        userOrgs$
+          .peek()
+          .find((org) => org.id === set?.organizationId)
+          ?.id?.toString() ?? "",
     },
   });
 
@@ -180,13 +182,14 @@ const SetDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Visibility</FormLabel>
-                    <Select
-                      defaultValue={Visibility.PUBLIC}
-                      onValueChange={field.onChange}
-                    >
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={"Select a visibility"} />
+                          <SelectValue
+                            placeholder={
+                              set?.visibility ?? "Select a visibility"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -194,7 +197,7 @@ const SetDialog = ({
                           {Object.values(Visibility).map((visibility) => (
                             <SelectItem
                               key={`visibility-${visibility}`}
-                              value={visibility as Visibility}
+                              value={visibility}
                             >
                               {capitalize(visibility)}
                             </SelectItem>
@@ -218,7 +221,15 @@ const SetDialog = ({
                     <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={"Select an Organization"} />
+                          <SelectValue
+                            placeholder={
+                              userOrgs$
+                                .peek()
+                                .find((org) => org.id === set?.organizationId)
+                                ?.uniqueName.toString() ??
+                              "Select an Organization"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

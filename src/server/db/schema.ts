@@ -9,7 +9,6 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
-  numeric,
   serial,
   text,
   timestamp,
@@ -202,6 +201,7 @@ export const questions = pgTable("question", {
   id: serial("queston_id").primaryKey(),
   number: integer("question_number").notNull(),
   question: varchar("question", { length: 1024 }).notNull(),
+  desc: varchar("question_desc", { length: 1024 }),
   levelid: integer("level_id")
     .references(() => levels.id, { onDelete: "cascade" })
     .notNull(),

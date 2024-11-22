@@ -41,7 +41,6 @@ import type { QuestionType, Organization } from "~/server/db/schema";
 import { Visibility } from "~/lib/types";
 import { createTypeAction, updateTypeAction } from "~/actions/questionTypes";
 import { type Observable } from "@legendapp/state";
-import { useProfile } from "../profile-provider";
 import { observer } from "@legendapp/state/react";
 
 const TypeDialog = ({
@@ -57,7 +56,6 @@ const TypeDialog = ({
   userQuestionTypes$: Observable<QuestionType[]>;
   userOrgs$: Observable<Organization[]>;
 }) => {
-  const user$ = useProfile();
   const { toast } = useToast();
   const qTypeForm = useForm<z.infer<typeof QuestionTypeSchema>>({
     resolver: zodResolver(QuestionTypeSchema),
@@ -66,6 +64,11 @@ const TypeDialog = ({
       name: qType?.name ?? "",
       desc: qType?.desc ?? "",
       visibility: qType?.visibility ?? Visibility.PUBLIC,
+      organization:
+        userOrgs$
+          .peek()
+          .find((org) => org.id === qType?.organizationId)
+          ?.id?.toString() ?? "",
     },
   });
 
@@ -179,13 +182,14 @@ const TypeDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Visibility</FormLabel>
-                    <Select
-                      defaultValue={Visibility.PUBLIC}
-                      onValueChange={field.onChange}
-                    >
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={"Select a visibility"} />
+                          <SelectValue
+                            placeholder={
+                              qType?.visibility ?? "Select a visibility"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -193,7 +197,7 @@ const TypeDialog = ({
                           {Object.values(Visibility).map((visibility) => (
                             <SelectItem
                               key={`visibility-${visibility}`}
-                              value={visibility as Visibility}
+                              value={visibility}
                             >
                               {capitalize(visibility)}
                             </SelectItem>
@@ -214,19 +218,27 @@ const TypeDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization</FormLabel>
-                    <Select
-                      defaultValue={user$.currentOrgRole.organizationUniqueName.get()}
-                      onValueChange={field.onChange}
-                    >
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={"Select an Organization"} />
+                          <SelectValue
+                            placeholder={
+                              userOrgs$
+                                .peek()
+                                .find((org) => org.id === qType?.organizationId)
+                                ?.uniqueName.toString() ??
+                              "Select an Organization"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
                           {userOrgs$.get().map((org) => (
-                            <SelectItem key={org.id} value={org.uniqueName}>
+                            <SelectItem
+                              key={org.id}
+                              value={org.id?.toString() ?? ""}
+                            >
                               {org.uniqueName}
                             </SelectItem>
                           ))}

@@ -2,7 +2,6 @@
 
 import { Editor } from "ketcher-react";
 import { type Ketcher, RemoteStructServiceProvider } from "ketcher-core";
-import { useEffectOnce } from "@legendapp/state/react";
 import { useRouter } from "next/navigation";
 import "ketcher-react/dist/index.css";
 
@@ -110,6 +109,11 @@ const SketcherEditor = ({
         );
         if (initialContent) {
           ketcher.setMolecule(initialContent).catch(() => {
+            router.refresh();
+            console.log("error");
+          });
+        } else {
+          ketcher.setMolecule("").catch(() => {
             router.refresh();
             console.log("error");
           });

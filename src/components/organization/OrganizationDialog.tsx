@@ -131,6 +131,7 @@ const OrganizationDialog = ({
             <div className="flex flex-col gap-4">
               <FormField
                 control={organizationForm.control}
+                disabled={action === "update"}
                 name="uniqueName"
                 render={({ field }) => (
                   <FormItem className="mt-4">

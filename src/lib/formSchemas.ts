@@ -15,9 +15,17 @@ export const RegisterSchema = z.object({
   email: z.string().email({
     message: "Email is required",
   }),
-  password: z.string().min(6, {
-    message: "Minimum 6 characters required",
-  }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(20, { message: "Password cannot exceed 20 characters" })
+    .regex(
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character",
+      },
+    ),
   name: z.string().min(1, {
     message: "Name is required",
   }),
@@ -109,7 +117,9 @@ export const QuestionTypeSchema = z.object({
   }),
   desc: z.optional(z.string()),
   visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
-  organization: z.optional(z.string()),
+  organization: z.string().min(1, {
+    message: "Organization is required",
+  }),
 });
 
 export const LevelSchema = z.object({
@@ -119,11 +129,13 @@ export const LevelSchema = z.object({
   }),
   desc: z.optional(z.string()),
   visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC),
-  organization: z.optional(z.string()),
+  organization: z.string().min(1, {
+    message: "Organization is required",
+  }),
 });
 
 export const QuestionSchema = z.object({
-  number: z.number().int().min(1),
+  number: z.optional(z.string()),
   question: z.string().min(1, {
     message: "Question is required",
   }),

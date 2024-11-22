@@ -86,28 +86,40 @@ const ManageType = ({
                     </p>
                   </CardContent>
                   <CardFooter>
-                    <p>{qType.visibility}</p>
-                    <div className="flex gap-2">
-                      {hasPermission(user$.get(), "types", "update", qType) && (
-                        <TypeDialog
-                          action="update"
-                          qType={qType}
-                          userQuestionTypes$={userQuestionTypes$}
-                          userOrgs$={userOrgs$}
-                        >
-                          <Button variant={"ghost"}>
-                            <Pencil width={20} />
+                    <div className="flex w-full items-center justify-between space-x-1">
+                      {qType.visibility}
+                      <div>
+                        {hasPermission(
+                          user$.get(),
+                          "types",
+                          "update",
+                          qType,
+                        ) && (
+                          <TypeDialog
+                            action="update"
+                            qType={qType}
+                            userQuestionTypes$={userQuestionTypes$}
+                            userOrgs$={userOrgs$}
+                          >
+                            <Button variant={"ghost"}>
+                              <Pencil width={20} />
+                            </Button>
+                          </TypeDialog>
+                        )}
+                        {hasPermission(
+                          user$.get(),
+                          "types",
+                          "delete",
+                          qType,
+                        ) && (
+                          <Button
+                            variant={"ghost"}
+                            onClick={() => deleteSet(qType.id)}
+                          >
+                            <Trash width={20} />
                           </Button>
-                        </TypeDialog>
-                      )}
-                      {hasPermission(user$.get(), "types", "delete", qType) && (
-                        <Button
-                          variant={"ghost"}
-                          onClick={() => deleteSet(qType.id)}
-                        >
-                          <Trash width={20} />
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardFooter>
                 </Card>

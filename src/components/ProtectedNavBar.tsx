@@ -68,7 +68,7 @@ const ProtectedNavBar = function ({ userOrgs }: { userOrgs: Organization[] }) {
   };
 
   return (
-    <header className="sticky top-0 z-10 mb-10 w-full border-b">
+    <header className="bg-background sticky top-0 z-10 mb-10 w-full border-b backdrop-blur-md">
       <div className="m-2 flex items-center justify-between px-16">
         <div className="flex items-center justify-start gap-4">
           <Memo>
