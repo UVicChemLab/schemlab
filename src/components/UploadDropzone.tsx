@@ -18,12 +18,14 @@ import { Button } from "./ui/button";
 import { ImagePlus } from "lucide-react";
 import { Input } from "./ui/input";
 import { type Editor } from "@tiptap/react";
+import { useToast } from "~/hooks/use-toast";
 
 const UploadDropzone = ({ editor }: { editor: Editor }) => {
   const [files, setFiles] = useState<File[]>([]);
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
   }, []);
+  const { toast } = useToast();
 
   const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -31,14 +33,24 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
     onClientUploadComplete: (images) => {
       images.map((image) => {
         editor.chain().focus().setImage({ src: image.url }).run();
+        editor.chain().focus().enter().run();
       });
-      alert("uploaded successfully!");
+      toast({
+        title: "Images uploaded successfully",
+        description: "Images uploaded successfully",
+      });
     },
     onUploadError: () => {
-      alert("error occurred while uploading");
+      toast({
+        title: "Something went wrong",
+        description: "Images could not be uploaded",
+      });
     },
     onUploadBegin: (file) => {
-      console.log("upload has begun for", file);
+      toast({
+        title: "Uploading...",
+        description: file,
+      });
     },
   });
 

@@ -11,10 +11,8 @@ import {
 } from "~/server/db/calls/crud";
 
 function getQuestionDescription(question: string) {
-  let truncatedText = question.slice(3, 20) + "...";
-  truncatedText = truncatedText.replaceAll("<p>", "");
-  truncatedText = truncatedText.replaceAll("</p>", "");
-  return "<p>" + truncatedText + "</p>";
+  const truncatedText = question.slice(3, 20) + "...";
+  return truncatedText.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
 export async function createQuestionAction(

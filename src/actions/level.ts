@@ -24,7 +24,6 @@ export const createLevelAction = async (
 export const updateLevelAction = async (
   values: z.infer<typeof LevelSchema>,
 ) => {
-  console.log(values);
   return updateLevel(
     values.id,
     values.name,

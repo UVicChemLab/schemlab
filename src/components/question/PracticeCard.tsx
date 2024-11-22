@@ -74,7 +74,7 @@ const PracticeCard = ({
         <CardDescription>Answer the following question</CardDescription>
       </CardHeader>
       <CardContent>
-        {parse(question.desc ?? "")}
+        {parse(question.question ?? "")}
         <Form {...answerForm}>
           <form
             onSubmit={(e) => {

@@ -113,10 +113,7 @@ const SketcherEditor = ({
             console.log("error");
           });
         } else {
-          ketcher.setMolecule("").catch(() => {
-            router.refresh();
-            console.log("error");
-          });
+          ketcher.editor.clear();
         }
       }}
     />
