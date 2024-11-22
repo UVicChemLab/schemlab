@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Memo, useObservable } from "@legendapp/state/react";
 import { type Question } from "~/server/db/schema";
 import ManageContainer from "../ui/manage-container";
 import {
@@ -13,6 +12,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import Link from "next/link";
+import parse from "html-react-parser";
 
 const QuestionGrid = ({ questions }: { questions: Question[] }) => {
   return (
@@ -22,14 +22,10 @@ const QuestionGrid = ({ questions }: { questions: Question[] }) => {
           key={question.id}
           href={`/practiceQuestion?question=${question.id}&api_path=https://indigo.chemistrypuzzles.ca/v2`}
         >
-          <Card onClick={() => {}}>
+          <Card>
             <CardHeader>
               <CardTitle>{question.number}</CardTitle>
-              <CardDescription>
-                <div
-                  dangerouslySetInnerHTML={{ __html: question.question }}
-                ></div>
-              </CardDescription>
+              <CardDescription>{parse(question.desc ?? "")}</CardDescription>
             </CardHeader>
             <CardContent></CardContent>
             <CardFooter></CardFooter>

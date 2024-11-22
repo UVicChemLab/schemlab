@@ -4,7 +4,6 @@ import type * as z from "zod";
 import type { QuestionTypeSchema } from "~/lib/formSchemas";
 import { createType, updateType, deleteType } from "~/server/db/calls/crud";
 import { getCurrentUser } from "./profile";
-import { getOrgByUniqueName } from "~/server/db/calls/auth";
 
 export const createTypeAction = async (
   values: z.infer<typeof QuestionTypeSchema>,
@@ -12,35 +11,26 @@ export const createTypeAction = async (
 ) => {
   const user = await getCurrentUser();
   if (user) {
-    const org = await getOrgByUniqueName(
-      user.currentOrgRole.organizationUniqueName,
+    return createType(
+      values.name,
+      parseInt(values.organization),
+      values.visibility,
+      user.id,
+      values.desc,
     );
-    if (org)
-      return createType(
-        values.name,
-        org.id,
-        values.visibility,
-        user.id,
-        values.desc,
-      );
   }
 };
 
 export const updateTypeAction = async (
   values: z.infer<typeof QuestionTypeSchema>,
 ) => {
-  if (values.organization) {
-    const org = await getOrgByUniqueName(values.organization);
-    if (org)
-      return updateType(
-        values.id,
-        values.name,
-        values.desc,
-        values.visibility,
-        org.id,
-      );
-  }
-  return updateType(values.id, values.name, values.desc, values.visibility);
+  return updateType(
+    values.id,
+    values.name,
+    values.desc,
+    values.visibility,
+    parseInt(values.organization),
+  );
 };
 
 export const deleteTypeAction = async (typeId: number) => {

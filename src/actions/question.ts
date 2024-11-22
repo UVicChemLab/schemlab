@@ -10,10 +10,18 @@ import {
   deleteQuestion,
 } from "~/server/db/calls/crud";
 
+function getQuestionDescription(question: string) {
+  let truncatedText = question.slice(3, 20) + "...";
+  truncatedText = truncatedText.replaceAll("<p>", "");
+  truncatedText = truncatedText.replaceAll("</p>", "");
+  return "<p>" + truncatedText + "</p>";
+}
+
 export async function createQuestionAction(
   values: z.infer<typeof QuestionSchema>,
   _?: number,
 ) {
+  console.log(values);
   const user = await getCurrentUser();
   if (user) {
     let questionNumber: number;
@@ -23,6 +31,7 @@ export async function createQuestionAction(
     return await createQuestion(
       questionNumber,
       values.question,
+      getQuestionDescription(values.question),
       values.answer,
       parseInt(values.level),
       parseInt(values.set),
@@ -37,11 +46,12 @@ export async function updateQuestionAction(
   id?: number,
 ) {
   const user = await getCurrentUser();
-  if (user && id) {
+  if (user && id && values.number) {
     return await updateQuestion(
       id,
-      values.number,
+      parseInt(values.number),
       values.question,
+      getQuestionDescription(values.question),
       values.answer,
       parseInt(values.level),
       parseInt(values.set),

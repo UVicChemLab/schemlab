@@ -25,7 +25,9 @@ import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnswerSchema } from "~/lib/formSchemas";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import parse from "html-react-parser";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
@@ -48,6 +50,7 @@ const PracticeCard = ({
     },
   });
   const { toast } = useToast();
+  const router = useRouter();
 
   function onSubmit(values: z.infer<typeof AnswerSchema>) {
     if (values.answer === question.answer) {
@@ -71,10 +74,7 @@ const PracticeCard = ({
         <CardDescription>Answer the following question</CardDescription>
       </CardHeader>
       <CardContent>
-        <div
-          className="m-4 text-xl"
-          dangerouslySetInnerHTML={{ __html: question.question }}
-        ></div>
+        {parse(question.desc ?? "")}
         <Form {...answerForm}>
           <form
             onSubmit={(e) => {
@@ -139,6 +139,9 @@ const PracticeCard = ({
               )}
             />
             <CardFooter className="flex justify-end gap-4">
+              <Button variant="outline" onClick={() => router.push("/home")}>
+                Cancel
+              </Button>
               <Button type="submit" name="saveAnswerForm">
                 Submit
               </Button>

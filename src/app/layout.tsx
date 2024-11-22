@@ -9,8 +9,8 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
-  title: "Spectroscopy Chemistry Lab",
-  description: "An open-source interactive spectroscopy website",
+  title: "Chemistry Puzzles",
+  description: "An open-source interactive chemistry website",
   icons: [{ rel: "icon", url: "/compound.png" }],
 };
 

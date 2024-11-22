@@ -20,6 +20,7 @@ import { Pencil, Trash, Plus } from "lucide-react";
 import Link from "next/link";
 import { DEFAULT_LOGIN_REDIRECT } from "~/lib/routes";
 import { deleteQuestionAction } from "~/actions/question";
+import parse from "html-react-parser";
 
 const ManageQuestion = ({
   id,
@@ -32,6 +33,35 @@ const ManageQuestion = ({
   const user$ = useProfile();
   const userQuestions$ = useObservable<Question[]>(userQuestions);
 
+  const deleteQuestion = async (questionId: number | undefined) => {
+    if (!questionId) return;
+    deleteQuestionAction(questionId)
+      .then((res) => {
+        if (res?.success) {
+          const userQuestions = userQuestions$.get();
+          const questionIdx = userQuestions.findIndex(
+            (question) => question.id === res.question?.id,
+          );
+          userQuestions$[questionIdx]?.delete();
+          toast({
+            title: res.message,
+            description: new Date().toISOString(),
+          });
+        } else {
+          toast({
+            title: res?.message ?? "Something went wrong",
+            description: new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
+        toast({
+          title: "Something went wrong",
+          description: new Date().toISOString(),
+        });
+      });
+  };
+
   return (
     <ManageContainer heading="Manage Questions" id={id}>
       <Memo>
@@ -42,7 +72,9 @@ const ManageQuestion = ({
                 <Card key={question.id}>
                   <CardHeader>
                     <CardTitle>{question.number}</CardTitle>
-                    <CardDescription>{question.question}</CardDescription>
+                    <CardDescription>
+                      {question.desc ? parse(question.desc) : ""}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent></CardContent>
                   <CardFooter>
@@ -67,7 +99,10 @@ const ManageQuestion = ({
                         "delete",
                         question,
                       ) && (
-                        <Button variant={"ghost"}>
+                        <Button
+                          variant={"ghost"}
+                          onClick={() => deleteQuestion(question.id)}
+                        >
                           <Trash width={20} />
                         </Button>
                       )}

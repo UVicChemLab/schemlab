@@ -74,7 +74,6 @@ const ManageSet = ({
                     <CardDescription>{set.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p>{set.time?.minutes ?? "0"}</p>
                     <p>
                       {
                         userOrgs$
@@ -85,28 +84,30 @@ const ManageSet = ({
                     </p>
                   </CardContent>
                   <CardFooter>
-                    <p>{set.visibility}</p>
-                    <div className="flex gap-2">
-                      {hasPermission(user$.get(), "sets", "update", set) && (
-                        <SetDialog
-                          action="update"
-                          set={set}
-                          userSets$={userSets$}
-                          userOrgs$={userOrgs$}
-                        >
-                          <Button variant={"ghost"}>
-                            <Pencil width={20} />
+                    <div className="flex w-full items-center justify-between space-x-1">
+                      {set.visibility}
+                      <div>
+                        {hasPermission(user$.get(), "sets", "update", set) && (
+                          <SetDialog
+                            action="update"
+                            set={set}
+                            userSets$={userSets$}
+                            userOrgs$={userOrgs$}
+                          >
+                            <Button variant={"ghost"}>
+                              <Pencil width={10} />
+                            </Button>
+                          </SetDialog>
+                        )}
+                        {hasPermission(user$.get(), "sets", "delete", set) && (
+                          <Button
+                            variant={"ghost"}
+                            onClick={() => deleteSet(set.id)}
+                          >
+                            <Trash width={10} />
                           </Button>
-                        </SetDialog>
-                      )}
-                      {hasPermission(user$.get(), "sets", "delete", set) && (
-                        <Button
-                          variant={"ghost"}
-                          onClick={() => deleteSet(set.id)}
-                        >
-                          <Trash width={20} />
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardFooter>
                 </Card>

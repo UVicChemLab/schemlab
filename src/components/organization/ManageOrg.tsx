@@ -80,8 +80,7 @@ const ManageOrg = ({
                   </CardHeader>
                   <CardContent>{org.desc}</CardContent>
                   <CardFooter>
-                    {org.updatedAt?.getDate()}
-                    <div className="flex gap-2">
+                    <div className="flex w-full items-center justify-end space-x-1">
                       {hasPermission(
                         user$.get(),
                         "organizations",
@@ -95,7 +94,7 @@ const ManageOrg = ({
                           userOrganizations$={userOrganizations$}
                         >
                           <Button variant={"ghost"}>
-                            <Pencil width={20} />
+                            <Pencil width={10} />
                           </Button>
                         </OrganizationDialog>
                       )}
@@ -109,7 +108,7 @@ const ManageOrg = ({
                           variant={"ghost"}
                           onClick={() => deleteOrg(org.id)}
                         >
-                          <Trash width={20} />
+                          <Trash width={10} />
                         </Button>
                       )}
                     </div>

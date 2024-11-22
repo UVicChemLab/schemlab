@@ -86,38 +86,40 @@ const ManageLevel = ({
                     </p>
                   </CardContent>
                   <CardFooter>
-                    <p>{level.visibility}</p>
-                    <div className="flex gap-2">
-                      {hasPermission(
-                        user$.get(),
-                        "levels",
-                        "update",
-                        level,
-                      ) && (
-                        <LevelDialog
-                          action="update"
-                          level={level}
-                          userLevels$={userLevels$}
-                          userOrgs$={userOrgs$}
-                        >
-                          <Button variant={"ghost"}>
-                            <Pencil width={20} />
+                    <div className="flex w-full items-center justify-between space-x-1">
+                      {level.visibility}
+                      <div>
+                        {hasPermission(
+                          user$.get(),
+                          "levels",
+                          "update",
+                          level,
+                        ) && (
+                          <LevelDialog
+                            action="update"
+                            level={level}
+                            userLevels$={userLevels$}
+                            userOrgs$={userOrgs$}
+                          >
+                            <Button variant={"ghost"}>
+                              <Pencil width={20} />
+                            </Button>
+                          </LevelDialog>
+                        )}
+                        {hasPermission(
+                          user$.get(),
+                          "levels",
+                          "delete",
+                          level,
+                        ) && (
+                          <Button
+                            variant={"ghost"}
+                            onClick={() => deleteSet(level.id)}
+                          >
+                            <Trash width={20} />
                           </Button>
-                        </LevelDialog>
-                      )}
-                      {hasPermission(
-                        user$.get(),
-                        "levels",
-                        "delete",
-                        level,
-                      ) && (
-                        <Button
-                          variant={"ghost"}
-                          onClick={() => deleteSet(level.id)}
-                        >
-                          <Trash width={20} />
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardFooter>
                 </Card>

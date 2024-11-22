@@ -12,7 +12,6 @@ import {
   levels,
   types,
   sets,
-  answers,
 } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { type Visibility, type QuestionTime } from "~/lib/types";
@@ -54,6 +53,7 @@ export const getLastQuestionInSet = async (setid: number) => {
 export const createQuestion = async (
   number: number,
   question: string,
+  desc: string,
   answer: string,
   levelid: number,
   setid: number,
@@ -67,6 +67,7 @@ export const createQuestion = async (
       .values({
         number,
         question,
+        desc,
         answer,
         levelid,
         setid,
@@ -99,7 +100,8 @@ export const createQuestion = async (
         };
       }
     }
-  } catch (error) {
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     const qExist = await db.query.questions.findFirst({
       where: (questions, { eq, and }) =>
         and(eq(questions.setid, setid), eq(questions.number, number)),
@@ -108,12 +110,12 @@ export const createQuestion = async (
     if (qExist) {
       return {
         success: false,
-        message: `Question ${number} already exist`,
+        message: `Question ${number} already exist. Error: ${errorMessage}`,
       };
     } else {
       return {
         success: false,
-        message: `Error Creating Question ${number}!`,
+        message: `Error Creating Question ${number}! Error: ${errorMessage}`,
       };
     }
   }
@@ -123,6 +125,7 @@ export const updateQuestion = async (
   id: number,
   number: number,
   question: string,
+  desc: string,
   answer: string,
   levelid: number,
   setid: number,
@@ -132,7 +135,7 @@ export const updateQuestion = async (
   try {
     const res = await db
       .update(questions)
-      .set({ number, question, answer, levelid, setid, typeid, time })
+      .set({ number, question, desc, answer, levelid, setid, typeid, time })
       .where(eq(questions.id, id))
       .returning();
 
@@ -140,7 +143,7 @@ export const updateQuestion = async (
       return {
         success: true,
         message: `Question ${number} Updated Successfully`,
-        set: res[0] as Question,
+        question: res[0] as Question,
       };
     } else {
       return {
@@ -167,7 +170,7 @@ export const deleteQuestion = async (id: number) => {
       return {
         success: true,
         message: `Question ${res[0].number} Deleted Successfully`,
-        set: res[0] as Question,
+        question: res[0] as Question,
       };
     } else {
       return {
