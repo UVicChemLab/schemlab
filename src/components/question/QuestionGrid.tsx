@@ -19,7 +19,7 @@ const QuestionGrid = ({ questions }: { questions: Question[] }) => {
       {questions.map((question) => (
         <Link
           key={question.id}
-          href={`/practiceQuestion?question=${question.id}&api_path=https://indigo.chemistrypuzzles.ca/v2`}
+          href={`/practiceQuestion?question=${question.id}`}
         >
           <Card>
             <CardHeader>

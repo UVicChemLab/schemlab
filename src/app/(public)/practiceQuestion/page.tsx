@@ -18,11 +18,7 @@ const PracticeQuestionPage = async ({
   const questionDets: Question = await getQuestionById(parseInt(question));
   return (
     <div>
-      <PracticeCard
-        question={questionDets}
-        indigoServiceApiPath={"/v2"}
-        indigoServicePublicUrl={"https://indigo.chemistrypuzzles.ca"}
-      />
+      <PracticeCard question={questionDets} />
     </div>
   );
 };

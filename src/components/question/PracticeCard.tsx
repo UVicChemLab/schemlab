@@ -19,6 +19,14 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { useToast } from "~/hooks/use-toast";
 import { Button } from "../ui/button";
 import type { z } from "zod";
@@ -28,24 +36,22 @@ import { AnswerSchema } from "~/lib/formSchemas";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import parse from "html-react-parser";
-import { useObservable, observer, Memo } from "@legendapp/state/react";
-import { observe } from "@legendapp/state";
+import {
+  useObservable,
+  observer,
+  Memo,
+  useEffectOnce,
+} from "@legendapp/state/react";
 import Confetti from "react-confetti";
+import Image from "next/image";
+import type { Ketcher } from "ketcher-core";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
   loading: () => <p>Loading...</p>,
 });
 
-const PracticeCard = ({
-  question,
-  indigoServiceApiPath,
-  indigoServicePublicUrl,
-}: {
-  question: Question;
-  indigoServiceApiPath: string;
-  indigoServicePublicUrl: string;
-}) => {
+const PracticeCard = ({ question }: { question: Question }) => {
   const answerForm = useForm<z.infer<typeof AnswerSchema>>({
     resolver: zodResolver(AnswerSchema),
     defaultValues: {
@@ -53,8 +59,28 @@ const PracticeCard = ({
     },
   });
   const wrongCount$ = useObservable<number>(0);
+  const currentImage$ = useObservable("");
+  const ketcher$ = useObservable<Ketcher | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffectOnce(() => {
+    const images = document.querySelectorAll(".enlargeable-image");
+
+    const handleImageClick = (event: Event) => {
+      if (event.target instanceof HTMLImageElement) {
+        currentImage$.set(event.target.src);
+      }
+    };
+
+    images.forEach((img) => img.addEventListener("click", handleImageClick));
+
+    return () => {
+      images.forEach((img) =>
+        img.removeEventListener("click", handleImageClick),
+      );
+    };
+  });
 
   function onSubmit(values: z.infer<typeof AnswerSchema>) {
     if (values.answer === question.answer) {
@@ -64,10 +90,8 @@ const PracticeCard = ({
         action: <Confetti numberOfPieces={150} opacity={0.7} />,
       });
     } else if (wrongCount$.get() >= 4) {
-      // eslint-disable-next-line
-      window.ketcher.editor.clear();
-      // eslint-disable-next-line
-      window.ketcher.setMolecule(question.answer);
+      ketcher$.get()?.editor.clear();
+      ketcher$.get()?.setMolecule(question.answer ?? "");
       toast({
         variant: "destructive",
         title: "You have reached the maximum number of attempts!",
@@ -92,6 +116,33 @@ const PracticeCard = ({
         {parse(question.question ?? "")}
         <Memo>
           {() => (
+            <Dialog
+              open={!!currentImage$.peek()}
+              onOpenChange={(open) => !open && currentImage$.set("")}
+            >
+              <DialogTrigger asChild>
+                <div />
+              </DialogTrigger>
+              <DialogContent className="w-full max-w-screen-2xl p-4">
+                <DialogHeader>
+                  <DialogTitle>Enlarged Image</DialogTitle>
+                </DialogHeader>
+                {currentImage$.get() && (
+                  <Image
+                    src={currentImage$.get()}
+                    alt="Enlarged"
+                    width={1000}
+                    height={1000}
+                    className="h-auto w-full"
+                    style={{ objectFit: "contain" }}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
+        </Memo>
+        <Memo>
+          {() => (
             <Form {...answerForm}>
               <form
                 onSubmit={(e) => {
@@ -101,9 +152,9 @@ const PracticeCard = ({
                     const submitButton =
                       submitEvent.submitter as HTMLButtonElement;
                     if (submitButton?.name === "saveAnswerForm") {
-                      // eslint-disable-next-line
-                      window.ketcher // eslint-disable-next-line
-                        .getSmiles() // eslint-disable-next-line
+                      ketcher$
+                        .get()
+                        ?.getSmiles()
                         .then((smiles: string) => {
                           if (!smiles || smiles === "") {
                             answerForm.setValue("answer", "");
@@ -123,7 +174,7 @@ const PracticeCard = ({
                                 console.log("error");
                               });
                           }
-                        }) // eslint-disable-next-line
+                        })
                         .catch(() => {
                           answerForm.setValue("answer", "");
                           answerForm.setError(
@@ -147,11 +198,7 @@ const PracticeCard = ({
                       <FormLabel>Answer</FormLabel>
                       <FormControl>
                         <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
-                          <Sketcher
-                            initialContent={""}
-                            indigoServiceApiPath={indigoServiceApiPath}
-                            indigoServicePublicUrl={indigoServicePublicUrl}
-                          />
+                          <Sketcher initialContent={""} ketcher$={ketcher$} />
                         </div>
                       </FormControl>
                       <FormDescription>Type your answer here</FormDescription>

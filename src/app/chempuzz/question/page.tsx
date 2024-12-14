@@ -10,7 +10,7 @@ import {
   getQuestionById,
 } from "~/server/db/calls/crud";
 import type { Set, QuestionType, Level, Question } from "~/server/db/schema";
-import { Role } from "~/lib/types";
+import { ExtendedUser, Role } from "~/lib/types";
 import { getCurrentUser } from "~/actions/profile";
 import { env } from "~/env";
 
@@ -46,8 +46,6 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
             sets={userSets}
             qTypes={userQuestionTypes}
             question={questionDets}
-            indigoServiceApiPath={"/v2"}
-            indigoServicePublicUrl={"https://indigo.chemistrypuzzles.ca"}
           />
         </div>
       );
@@ -58,8 +56,6 @@ const QuestionPage = async ({ searchParams }: { searchParams: Params }) => {
           levels={userLevels}
           sets={userSets}
           qTypes={userQuestionTypes}
-          indigoServiceApiPath={"/v2"}
-          indigoServicePublicUrl={"https://indigo.chemistrypuzzles.ca"}
         />
       </div>
     );

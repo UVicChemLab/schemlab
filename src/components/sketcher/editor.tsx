@@ -2,6 +2,7 @@
 
 import { Editor } from "ketcher-react";
 import { type Ketcher, RemoteStructServiceProvider } from "ketcher-core";
+import type { Observable } from "@legendapp/state";
 import { useRouter } from "next/navigation";
 import "ketcher-react/dist/index.css";
 
@@ -74,16 +75,14 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
 };
 
 const SketcherEditor = ({
-  indigoServiceApiPath,
-  indigoServicePublicUrl,
+  ketcher$,
   initialContent,
 }: {
-  indigoServiceApiPath: string;
-  indigoServicePublicUrl: string;
+  ketcher$: Observable<Ketcher | null>;
   initialContent?: string;
 }) => {
   const structServiceProvider = new RemoteStructServiceProvider(
-    indigoServiceApiPath,
+    "https://indigo.chemistrypuzzles.ca/v2",
   );
 
   const router = useRouter();
@@ -96,10 +95,11 @@ const SketcherEditor = ({
         console.log("Error Message:", message);
         router.refresh();
       }}
-      staticResourcesUrl={indigoServicePublicUrl}
+      staticResourcesUrl={"https://indigo.chemistrypuzzles.ca"}
       structServiceProvider={structServiceProvider}
       buttons={hiddenButtonsConfig}
       onInit={(ketcher: Ketcher) => {
+        ketcher$.set(ketcher);
         window.ketcher = ketcher;
         window.parent.postMessage(
           {

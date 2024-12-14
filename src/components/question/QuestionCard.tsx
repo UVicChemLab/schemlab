@@ -41,6 +41,8 @@ import { capitalize } from "~/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { createQuestionAction, updateQuestionAction } from "~/actions/question";
 import { useRouter } from "next/navigation";
+import { useEffectOnce } from "@legendapp/state/react";
+import type { Ketcher } from "ketcher-core";
 
 const Sketcher = dynamic(() => import("~/components/sketcher/editor"), {
   ssr: false,
@@ -52,23 +54,21 @@ const QuestionCard = ({
   levels,
   sets,
   qTypes,
-  indigoServiceApiPath,
-  indigoServicePublicUrl,
 }: {
   question?: Question;
   levels: Level[];
   sets: Set[];
   qTypes: QuestionType[];
-  indigoServiceApiPath: string;
-  indigoServicePublicUrl: string;
 }) => {
   const { toast } = useToast();
   const userSets$ = useObservable<Set[]>(sets);
   const userQTypes$ = useObservable<QuestionType[]>(qTypes);
   const userLevels$ = useObservable<Level[]>(levels);
+  const ketcher$ = useObservable<Ketcher | null>(null);
   const searchParams = useSearchParams();
   const action = searchParams.get("action");
   const router = useRouter();
+
   const questionForm = useForm<z.infer<typeof QuestionSchema>>({
     resolver: zodResolver(QuestionSchema),
     defaultValues: {
@@ -125,8 +125,9 @@ const QuestionCard = ({
                 const submitButton = submitEvent.submitter as HTMLButtonElement;
                 if (submitButton?.name === "saveQuestionForm") {
                   // eslint-disable-next-line
-                  window.ketcher // eslint-disable-next-line
-                    .getSmiles() // eslint-disable-next-line
+                  ketcher$
+                    .get()
+                    ?.getSmiles() // eslint-disable-next-line
                     .then((smiles: string) => {
                       if (!smiles || smiles === "") {
                         questionForm.setValue("answer", "");
@@ -316,8 +317,7 @@ const QuestionCard = ({
                     <div className="w-12/13 m-10 flex h-[60svh] items-center justify-center rounded-md border-2">
                       <Sketcher
                         initialContent={question?.answer ?? ""}
-                        indigoServiceApiPath={indigoServiceApiPath}
-                        indigoServicePublicUrl={indigoServicePublicUrl}
+                        ketcher$={ketcher$}
                       />
                     </div>
                   </FormControl>
