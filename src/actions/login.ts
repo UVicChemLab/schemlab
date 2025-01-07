@@ -18,7 +18,7 @@ import {
 } from "~/lib/tokens";
 import { sendVerificationEmail, sendTwoFactorTokenEmail } from "~/lib/mail";
 import { redirect } from "next/navigation";
-import { isRedirectError } from "next/dist/client/components/redirect";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export const login = async (
   values: z.infer<typeof LoginSchema>,
