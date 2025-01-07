@@ -30,7 +30,6 @@ import { type Editor } from "@tiptap/react";
 import { useToast } from "~/hooks/use-toast";
 import { formatBytes } from "~/lib/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
-import Image from "next/image";
 
 const UploadDropzone = ({ editor }: { editor: Editor }) => {
   const [files, setFiles] = useState<File[]>([]);
@@ -47,7 +46,9 @@ const UploadDropzone = ({ editor }: { editor: Editor }) => {
       images.forEach((image) => {
         editor
           .chain()
-          .insertContent(`<img src="${image.url}" /><br>`)
+          .insertContent(
+            `<img src="${image.url}" class="enlargeable-image cursor-pointer transition-transform duration-300 ease-in-out" /><br>`,
+          )
           .focus("end")
           .run();
       });

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { observable, type Observable } from "@legendapp/state";
+import { observable } from "@legendapp/state";
 import { useObservable } from "@legendapp/state/react";
 import { type ExtendedUser, defaultOrgRole } from "~/lib/types";
 
