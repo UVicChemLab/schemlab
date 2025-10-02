@@ -65,13 +65,27 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
   const searchParams = new URLSearchParams(window.location.search);
   const hiddenButtons = searchParams.get("hiddenControls");
 
-  if (!hiddenButtons) return {};
+  const baseConfig: ButtonsConfig = {
+    arom: { hidden: true },
+    dearom: { hidden: true },
+    cip: { hidden: true },
+    miew: { hidden: true },
+    help: { hidden: true },
+    about: { hidden: true },
+    sgroup: { hidden: true },
+    rgroup: { hidden: true },
+    "rgroup-attpoints": { hidden: true },
+    "rgroup-fragment": { hidden: true },
+    "rgroup-label": { hidden: true },
+  };
+
+  if (!hiddenButtons) return baseConfig;
 
   return hiddenButtons.split(",").reduce<ButtonsConfig>((acc, button) => {
     if (button) acc[button as ButtonName] = { hidden: true };
 
     return acc;
-  }, {});
+  }, baseConfig);
 };
 
 const SketcherEditor = ({

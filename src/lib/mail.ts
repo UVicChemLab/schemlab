@@ -3,7 +3,7 @@ import { env } from "~/env";
 
 const resend = new Resend(env.AUTH_RESEND_KEY);
 
-const domain = "http://localhost:3000";
+const domain = "https://chemistrypuzzles.ca";
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${domain}/auth/new-password?token=${token}`;
